@@ -1,3 +1,0 @@
-Hydra v9.2 (c) 2021 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
-
-Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2023-04-23 05:03:40
