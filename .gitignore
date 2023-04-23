@@ -167,4 +167,4 @@ models/
 
 # data
 *.db
-birth_record_search/
+data/

@@ -2,7 +2,10 @@
 ReadAGPT main
 Using the menu select which test to run
 """
+from dotenv import load_dotenv
+import validators
 from tools.login_checker import LoginChecker
+
 
 class textformat:
     PURPLE = '\033[95m'
@@ -16,10 +19,11 @@ class textformat:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
+
 def main():
+    load_dotenv()
+
     options_open = [1]
-    tools_names = ["Login Checker"]
-    tools = [LoginChecker().run()]
 
     print(
         f"{textformat.RED}%%-------------------------------------------%%{textformat.END}",
@@ -29,7 +33,7 @@ def main():
         "\n\n[1] Login Test",
         "\n"
     )
-    
+
     number_choice = 0
 
     while True:
@@ -43,10 +47,22 @@ def main():
         except ValueError:
             print(f"{choice} is not a choice, please try again")
 
-    
+    # login Checker
+    if number_choice == 1:
+        while True:
+            http_url = input("\nEnter the url of the form to test\n")
+            if validators.url(http_url):
+                break
+            else:
+                print(f"{http_url} is not a valid URL. Try again")
+
+        lgcheck = LoginChecker(http_url)
+        
+        print(f"Running langchain with autoGPT using this prompt \n{lgcheck.prompt}\n")
+
+        lgcheck.run()
+
 
 
 if __name__ == "__main__":
-    
-
     main()
