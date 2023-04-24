@@ -168,3 +168,6 @@ models/
 # data
 *.db
 data/
+
+# hydra restore files
+hydra.restore
