@@ -28,6 +28,8 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.experimental import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
+from langchain.document_loaders import YoutubeLoader
+
 
 class LoginChecker:
     def __init__(self, http_url):
@@ -53,45 +55,54 @@ class LoginChecker:
 
         # prompt for the agent to use, will be a list
         data_path = os.path.abspath("tools/data/")
-        self.prompt = f"Create a security report for a login form via GET at {self.http_url} using the tool hydra via the bash terminal. Use one or more wordlists from the local folder {data_path}"
+        logs_path = os.path.abspath("tools/logs/")
+        transcript_path = os.path.abspath("tools/transcripts")
+        self.goals = [
+            f"""
+            You are to use Hydra, a parallelized login cracker, using the local bash terminal to determine the security of a form located at {http_url}: 
+              - Hydra is located at /usr/bin/hydra
+              - Refer to how to at {transcript_path + "/CertBrosHowToHydra.txt"}
+              - Check if there is a "password_list.txt" at {data_path} and if the file is not found, download using wget a password lists from https://github.com/kkrypt0nn/wordlists/tree/main/passwords and save them to {data_path}. If you receive a 404, use another list.
+              - Check if there is a "username_list.txt" at {data_path} abd if the file is not found, download using wget a username lists from https://github.com/kkrypt0nn/wordlists/blob/main/usernames/default_users_for_services.txt and save them to {data_path}. If you receive a 404, use another list.
+            """,
+            f"""
+            Find other security issues not covered by the tools in step 1 with login form at {self.http_url}
+                - Install needed security tools
+            """,
+            """Create a natural English language security report for those who are not technically savy to read. Include details of methods used and results found
+            - Include a summery at the end of the report detailing what was wrong and how to fix issues.
+            - If there are no issues found, return \"No Security Issues Reported\"
+            """,
+            f"Keep logs and the final security report at {logs_path}"
+        ]
 
         try:
-            # embedding size 1536
-            # have to manually create index but will need to explore
-            # how to create without any text using from_document or from_text
-
-            # going to try a hack of creating a random string of length from
-            # langchain example docs for the faiss
-            # rand_str_length = 1536
-            # rand_str = ''.join(
-            #     random.choices(
-            #         string.ascii_uppercase + string.digits, k=rand_str_length))
-            
-            # self.vectorstore = Redis.from_texts(
-            #     texts=[rand_str],
-            #     redis_url=os.environ["REDIS_URL"],
-            #     index_name=os.environ["REDIS_INDEX_NAME"],
-            #     embedding=self.embeddings
-            # )
-            # self.vectorstore = Redis(
-            #     redis_url=os.environ["REDIS_URL"],
-            #     index_name=os.environ["REDIS_INDEX_NAME"],
-            #     embedding_function=self.embeddings.embed_query
-            # )
-
             # using faiss
+            # possibly can use redis but will need to update
+            # the landchain agent.py in experimental for autogpt
+            # to use add_text
             embedding_size = 1536
             index = faiss.IndexFlatL2(embedding_size)
             self.vectorstore = FAISS(self.embeddings.embed_query, index, InMemoryDocstore({}), {})
+
+            # load in youtube about using hydra
+            # -- NOT WORKING ---
+            # will need to make a transcript folder and have it 
+            # CertBros - How to HACK Website Login Pages | Brute Forcing with Hydra
+            # print("\n *** Memory injection of HYDRA how-to from youtube ***")
+            # print("Using video \"CertBros - How to HACK Website Login Pages | Brute Forcing with Hydra\" [https://www.youtube.com/watch?v=-CMBoJ60K1A]\n")
+            # yt_loader = YoutubeLoader.from_youtube_url("https://www.youtube.com/watch?v=-CMBoJ60K1A")
+            # yt_doc = yt_loader.load()
+            # self.vectorstore.add_documents(yt_doc)
         except Exception as err:
-            print("Redis connection failed {err}")
+            print("FAISS creation failed {err}")
             # yield err
             raise err
 
     def run(self):
         agent = AutoGPT.from_llm_and_tools(
             ai_name="Kevin",
-            ai_role="IT Security",
+            ai_role="White Hat Hacker",
             tools=self.tools,
             llm=ChatOpenAI(temperature=0),
             memory=self.vectorstore.as_retriever()
@@ -102,4 +113,4 @@ class LoginChecker:
 
         # give prompt for running login test
         # closed for now but will need a list of different ones to choose
-        agent.run([self.prompt])
+        agent.run(self.goals)

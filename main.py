@@ -50,6 +50,16 @@ def main():
     # login Checker
     if number_choice == 1:
         while True:
+            http_type = input("\nLocal or Remote\n")
+            if http_type == "Local":
+                break
+            elif http_type == "Remote":
+                print(f"\n{textformat.RED}REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN{textformat.END}")
+                break
+            else:
+                print("Please enter \"Local\" or \"Remote\", without the quotes, to answer")
+
+        while True:
             http_url = input("\nEnter the url of the form to test\n")
             if validators.url(http_url):
                 break
@@ -57,8 +67,6 @@ def main():
                 print(f"{http_url} is not a valid URL. Try again")
 
         lgcheck = LoginChecker(http_url)
-        
-        print(f"Running langchain with autoGPT using this prompt \n{lgcheck.prompt}\n")
 
         lgcheck.run()
 
