@@ -39,7 +39,11 @@ class LoginChecker:
             Tool(
                 "search",
                 GoogleSearchAPIWrapper().run,
-                "useful for when you need to answer questions about current events. You should ask targeted questions"),
+                """
+                Useful for when you need to answer questions about current events. 
+                You should ask targeted questions
+                """
+            ),
             PythonREPLTool(),
             # StdInInquireTool(),
             Tool(
@@ -59,17 +63,26 @@ class LoginChecker:
         transcript_path = os.path.abspath("tools/transcripts")
         self.goals = [
             f"""
-            You are to use Hydra, a parallelized login cracker, using the local bash terminal to determine the security of a form located at {http_url}: 
+            You are to use Hydra, a parallelized login cracker, 
+            using the local bash terminal to determine the security of a form located at {http_url}: 
               - Hydra is located at /usr/bin/hydra
               - Refer to how to at {transcript_path + "/CertBrosHowToHydra.txt"}
-              - Check if there is a "password_list.txt" at {data_path} and if the file is not found, download using wget a password lists from https://github.com/kkrypt0nn/wordlists/tree/main/passwords and save them to {data_path}. If you receive a 404, use another list.
-              - Check if there is a "username_list.txt" at {data_path} abd if the file is not found, download using wget a username lists from https://github.com/kkrypt0nn/wordlists/blob/main/usernames/default_users_for_services.txt and save them to {data_path}. If you receive a 404, use another list.
+              - Check if there is a "password_list.txt" at {data_path} and if the file is not found, 
+                download using wget a password lists from 
+                https://github.com/kkrypt0nn/wordlists/tree/main/passwords 
+                and save them to {data_path}. If you receive a 404, use another list.
+              - Check if there is a "username_list.txt" at {data_path} abd if the file is not found, 
+                download using wget a username lists from 
+                https://github.com/kkrypt0nn/wordlists/blob/main/usernames/default_users_for_services.txt 
+                and save them to {data_path}. If you receive a 404, use another list.
             """,
             f"""
             Find other security issues not covered by the tools in step 1 with login form at {self.http_url}
                 - Install needed security tools
             """,
-            """Create a natural English language security report for those who are not technically savy to read. Include details of methods used and results found
+            """
+            Create a natural English language security report for those who 
+            are not technically savy to read. Include details of methods used and results found
             - Include a summery at the end of the report detailing what was wrong and how to fix issues.
             - If there are no issues found, return \"No Security Issues Reported\"
             """,
@@ -85,15 +98,6 @@ class LoginChecker:
             index = faiss.IndexFlatL2(embedding_size)
             self.vectorstore = FAISS(self.embeddings.embed_query, index, InMemoryDocstore({}), {})
 
-            # load in youtube about using hydra
-            # -- NOT WORKING ---
-            # will need to make a transcript folder and have it 
-            # CertBros - How to HACK Website Login Pages | Brute Forcing with Hydra
-            # print("\n *** Memory injection of HYDRA how-to from youtube ***")
-            # print("Using video \"CertBros - How to HACK Website Login Pages | Brute Forcing with Hydra\" [https://www.youtube.com/watch?v=-CMBoJ60K1A]\n")
-            # yt_loader = YoutubeLoader.from_youtube_url("https://www.youtube.com/watch?v=-CMBoJ60K1A")
-            # yt_doc = yt_loader.load()
-            # self.vectorstore.add_documents(yt_doc)
         except Exception as err:
             print("FAISS creation failed {err}")
             # yield err
