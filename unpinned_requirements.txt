@@ -1,0 +1,7 @@
+langchain
+python-dotenv
+validators
+faiss-cpu
+google-api-python-client
+openai
+tiktoken
