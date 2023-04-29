@@ -23,6 +23,7 @@ from langchain.utilities import GoogleSearchAPIWrapper
 # import faiss
 from langchain.docstore import InMemoryDocstore
 from langchain.vectorstores.redis import Redis
+import redis
 from langchain.embeddings import OpenAIEmbeddings
 
 from langchain.experimental import AutoGPT
@@ -61,26 +62,15 @@ class LoginChecker:
         data_path = os.path.abspath("tools/data/")
         logs_path = os.path.abspath("tools/logs/")
         bin_path = os.path.abspath("tools/bin")
-        transcript_path = os.path.abspath("tools/transcripts")
+
         self.goals = [
             f"""
             You are to use Hydra, a parallelized login cracker, 
             using the local bash terminal to determine the security of a form located at {http_url}: 
-              - Hydra is located at /usr/bin/hydra
-              - There is a "password_list.txt" at {data_path} and if the file is not found, 
-                download using wget a password lists from 
-                https://github.com/kkrypt0nn/wordlists/tree/main/passwords 
-                and save them to {data_path}. If you receive a 404, use another list.
-              - There is a "username_list.txt" at {data_path} abd if the file is not found, 
-                download using wget a username lists from 
-                https://github.com/kkrypt0nn/wordlists/blob/main/usernames/default_users_for_services.txt 
-                and save them to {data_path}. If you receive a 404, use another list.
-              - Download all program install files needed to {data_path}
-              - Install all program binaries needed to {bin_path}
+              - Use the hydra command `hydra -L {data_path + "/username_list.txt"} -P {data_path + "/password_list.txt"} 127.0.0.1 http-post-form -o {logs_path + "/hydra_log.txt"}
             """,
             f"""
-            Find other security issues not covered by the tools in step 1 with login form at {self.http_url}
-                - Install needed security tools
+            Using selenium python package and its WebDriver API, create a python program that iterates through the username list {data_path + "/username_list.txt"} with every password  at {data_path + "/password_list.txt"} and try to login at {http_url} and store the python program at {bin_path}
             """,
             """
             Create a natural English language security report for those who 
@@ -88,16 +78,28 @@ class LoginChecker:
             - Include a summery at the end of the report detailing what was wrong and how to fix issues.
             - If there are no issues found, return \"No Security Issues Reported\"
             """,
-            f"Keep logs and the final security report at {logs_path}"
+            f"Keep logs and the final security report at {logs_path + '/'}"
         ]
 
         try:
-            # loading transcript about hydra as first document
-            transcript_path = "{}/CertBrosHowToHydra.txt".format(os.path.abspath("tools/transcripts"))
-            with open(transcript_path, "r") as transfile:
-                transcript_hydra = transfile.read().replace("\n", "")
+            # check if index name exists and if not create it
+            # connect to Redis server
+            redis_check = redis.Redis.from_url(os.environ["REDIS_URL"])
+
+            # check if the index exists
+            if not redis_check.exists(os.environ["REDIS_INDEX_NAME"]):
+                # create the index if it doesn't exist
                 Redis.from_texts(
-                    texts=[transcript_hydra],
+                    texts=["first"],
+                    redis_url=os.environ["REDIS_URL"],
+                    index_name=os.environ["REDIS_INDEX_NAME"],
+                    embedding=self.embeddings
+                )
+            else:
+                # clear and reset if it does
+                redis_check.flushall()
+                Redis.from_texts(
+                    texts=["first"],
                     redis_url=os.environ["REDIS_URL"],
                     index_name=os.environ["REDIS_INDEX_NAME"],
                     embedding=self.embeddings
