@@ -68,7 +68,9 @@ def main():
 
         lgcheck = LoginChecker(http_url)
 
-        lgcheck.run()
+        agent_response = lgcheck.run()
+
+        print(agent_response)
 
 
 

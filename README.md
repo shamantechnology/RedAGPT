@@ -15,6 +15,11 @@ You should create a virtualenv with the required dependencies by running
 make virtualenv
 ```
 
+Activate the virtualenv by running
+```
+source ./.venv/bin/activate
+```
+
 When a new requirement is needed you should add it to `unpinned_requirements.txt` and run
 ```
 make update-requirements-txt
@@ -25,4 +30,9 @@ this ensure that all requirements are pinned and work together for ensuring repr
 ## Make a copy of the example environment variables file
 ```
 cp .env.template .env
+```
+
+# Run the app
+```
+streamlit run chatbot.py | tail -n +6 > tools/logs/logtest04292023.txt 
 ```
