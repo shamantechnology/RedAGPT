@@ -65,12 +65,10 @@ class LoginChecker:
 
         self.goals = [
             f"""
-            You are to use Hydra, a parallelized login cracker, 
-            using the local bash terminal to determine the security of a form located at {http_url}: 
-              - Use the hydra command `hydra -L {data_path + "/username_list.txt"} -P {data_path + "/password_list.txt"} 127.0.0.1 http-post-form -o {logs_path + "/hydra_log.txt"}
+            Use the hydra command in the local terminal to scan the url {self.http_url} `hydra -L {data_path + "/username_list.txt"} -P {data_path + "/password_list.txt"} -s PORT HOSTNAME http-post-form -o {logs_path + "/hydra_log.txt"} "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password"
             """,
             f"""
-            Using selenium python package and its WebDriver API, create a python program that iterates through the username list {data_path + "/username_list.txt"} with every password  at {data_path + "/password_list.txt"} and try to login at {http_url} and store the python program at {bin_path}
+            Using selenium python package and its WebDriver API, create a python program that iterates through the username list {data_path + "/username_list.txt"} with every password  at {data_path + "/password_list.txt"} and try to login at {self.http_url} and store the python program at {bin_path}
             """,
             """
             Create a natural English language security report for those who 
@@ -87,7 +85,9 @@ class LoginChecker:
             redis_check = redis.Redis.from_url(os.environ["REDIS_URL"])
 
             # check if the index exists
-            if not redis_check.exists(os.environ["REDIS_INDEX_NAME"]):
+            if len(redis_check.keys(
+                "doc:{}*".format(os.environ["REDIS_INDEX_NAME"])
+            )) == 0:
                 # create the index if it doesn't exist
                 Redis.from_texts(
                     texts=["first"],
