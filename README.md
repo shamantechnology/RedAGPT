@@ -33,9 +33,14 @@ cp .env.template .env
 Utilizing AutoGPT and LangChain, we use linux based network security tools for malware and intrusion prevention. Utilizing AI to keep your network secure and up-to-date.
 
 ### Coding Libraries Used
-LangChain
-AutoGPT experimental module via LangChain
-Redis vectorstorage module via LangChain
+* LangChain
+* AutoGPT experimental module via LangChain
+* Redis vectorstorage module via LangChain
+
+### Tech Used
+* Redis Vector Storage 6.2.10
+* Ubuntu (WSL) 22.04 LTS
+* Kali Linux 6.1.0
 
 ### Tools
 #### LoginChecker
@@ -50,3 +55,4 @@ At the end it will give us a security report of vulnerabilities found, if any, a
 * Work on a social engineering tool
 * Embed in portable hardware like RespberryPI
 * Further guardrail development
+* Integration into Kali Linux
