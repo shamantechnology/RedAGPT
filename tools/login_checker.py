@@ -19,10 +19,10 @@ from langchain.tools.python.tool import PythonREPLTool
 # from langchain.tools.interaction.tool import StdInInquireTool
 from langchain.utilities import GoogleSearchAPIWrapper
 
-from langchain.vectorstores import FAISS
-import faiss
+# from langchain.vectorstores import FAISS
+# import faiss
 from langchain.docstore import InMemoryDocstore
-# from langchain.vectorstores.redis import Redis
+from langchain.vectorstores.redis import Redis
 from langchain.embeddings import OpenAIEmbeddings
 
 from langchain.experimental import AutoGPT
@@ -60,21 +60,23 @@ class LoginChecker:
         # prompt for the agent to use, will be a list
         data_path = os.path.abspath("tools/data/")
         logs_path = os.path.abspath("tools/logs/")
+        bin_path = os.path.abspath("tools/bin")
         transcript_path = os.path.abspath("tools/transcripts")
         self.goals = [
             f"""
             You are to use Hydra, a parallelized login cracker, 
             using the local bash terminal to determine the security of a form located at {http_url}: 
               - Hydra is located at /usr/bin/hydra
-              - Refer to how to at {transcript_path + "/CertBrosHowToHydra.txt"}
-              - Check if there is a "password_list.txt" at {data_path} and if the file is not found, 
+              - There is a "password_list.txt" at {data_path} and if the file is not found, 
                 download using wget a password lists from 
                 https://github.com/kkrypt0nn/wordlists/tree/main/passwords 
                 and save them to {data_path}. If you receive a 404, use another list.
-              - Check if there is a "username_list.txt" at {data_path} abd if the file is not found, 
+              - There is a "username_list.txt" at {data_path} abd if the file is not found, 
                 download using wget a username lists from 
                 https://github.com/kkrypt0nn/wordlists/blob/main/usernames/default_users_for_services.txt 
                 and save them to {data_path}. If you receive a 404, use another list.
+              - Download all program install files needed to {data_path}
+              - Install all program binaries needed to {bin_path}
             """,
             f"""
             Find other security issues not covered by the tools in step 1 with login form at {self.http_url}
@@ -90,16 +92,33 @@ class LoginChecker:
         ]
 
         try:
+            # loading transcript about hydra as first document
+            transcript_path = "{}/CertBrosHowToHydra.txt".format(os.path.abspath("tools/transcripts"))
+            with open(transcript_path, "r") as transfile:
+                transcript_hydra = transfile.read().replace("\n", "")
+                Redis.from_texts(
+                    texts=[transcript_hydra],
+                    redis_url=os.environ["REDIS_URL"],
+                    index_name=os.environ["REDIS_INDEX_NAME"],
+                    embedding=self.embeddings
+                )
+
+            self.vectorstore = Redis(
+                redis_url=os.environ["REDIS_URL"],
+                index_name=os.environ["REDIS_INDEX_NAME"],
+                embedding_function=self.embeddings.embed_query
+            )
+
             # using faiss
             # possibly can use redis but will need to update
             # the landchain agent.py in experimental for autogpt
             # to use add_text
-            embedding_size = 1536
-            index = faiss.IndexFlatL2(embedding_size)
-            self.vectorstore = FAISS(self.embeddings.embed_query, index, InMemoryDocstore({}), {})
+            # embedding_size = 1536
+            # index = faiss.IndexFlatL2(embedding_size)
+            # self.vectorstore = FAISS(self.embeddings.embed_query, index, InMemoryDocstore({}), {})
 
         except Exception as err:
-            print("FAISS creation failed {err}")
+            print("Redis creation failed {err}")
             # yield err
             raise err
 
@@ -108,7 +127,7 @@ class LoginChecker:
             ai_name="Kevin",
             ai_role="White Hat Hacker",
             tools=self.tools,
-            llm=ChatOpenAI(temperature=0),
+            llm=ChatOpenAI(temperature=0.8),
             memory=self.vectorstore.as_retriever()
         )
 
