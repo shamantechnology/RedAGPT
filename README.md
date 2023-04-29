@@ -26,3 +26,27 @@ this ensure that all requirements are pinned and work together for ensuring repr
 ```
 cp .env.template .env
 ```
+
+# Project Summary
+
+### Idea
+Utilizing AutoGPT and LangChain, we use linux based network security tools for malware and intrusion prevention. Utilizing AI to keep your network secure and up-to-date.
+
+### Coding Libraries Used
+LangChain
+AutoGPT experimental module via LangChain
+Redis vectorstorage module via LangChain
+
+### Tools
+#### LoginChecker
+Utilizing [LangChain AutoGPT Documentation](https://github.com/hwchase17/langchain/blob/master/docs/use_cases/autonomous_agents/autogpt.ipynb) we created a set of [goals](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L65) for it to test the security of a login form on a website or IP.
+
+Using those [goals](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L65) it runs command line tools like [Hydra](https://www.kali.org/tools/hydra/) and creates a form security test program in Python using the [selenium library](https://selenium-python.readthedocs.io/) and running it in REPL
+
+At the end it will give us a security report of vulnerabilities found, if any, and give recommendations on how to fix. 
+
+### Future
+* Later implementations we plan on allowing the user to task the AI to fix these issues.
+* Work on a social engineering tool
+* Embed in portable hardware like RespberryPI
+* Further guardrail development
