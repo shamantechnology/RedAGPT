@@ -46,7 +46,7 @@ Utilizing AutoGPT and LangChain, we use linux based network security tools for m
 #### LoginChecker
 Utilizing [LangChain AutoGPT Documentation](https://github.com/hwchase17/langchain/blob/master/docs/use_cases/autonomous_agents/autogpt.ipynb) we created a set of [goals](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L65) for it to test the security of a login form on a website or IP.
 
-Using those [goals](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L65) and declare the type of [agent](https://github.com/shamantechnology/RedAGPT/tree/master#project-summary) to be, it runs command line tools like [Hydra](https://www.kali.org/tools/hydra/) and creates a form security test program in Python using the [selenium library](https://selenium-python.readthedocs.io/) and running it in REPL
+Using these [goals](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L65) and declaring the type of [agent](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L126) to be, it runs command line tools like [Hydra](https://www.kali.org/tools/hydra/) and creates a form security test program in Python using the [selenium library](https://selenium-python.readthedocs.io/) and running it in REPL
 
 At the end it will give us a security report of vulnerabilities found, if any, and give recommendations on how to fix. 
 
