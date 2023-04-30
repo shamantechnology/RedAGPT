@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import openai
 import validators
 import multiprocessing
-import time
 from datetime import datetime
 import base64
 
@@ -147,12 +146,11 @@ if model == "Login Checker":
             
 
 ## Show msgs in the bot
+if st.session_state['generated']:
 
-# if st.session_state['generated']:
+    for i in range(len(st.session_state['generated'])-1, -1, -1):
+        message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+        message(st.session_state["generated"][i], key=str(i))
 
-#     for i in range(len(st.session_state['generated'])-1, -1, -1):
-#         message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-#         message(st.session_state["generated"][i], key=str(i))
-
-#     with st.expander("Show Messages"):
-#         st.write(messages)
+    with st.expander("Show Messages"):
+        st.write(messages)
