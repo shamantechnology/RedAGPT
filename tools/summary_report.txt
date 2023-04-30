@@ -1,0 +1,1 @@
+/home/host/Project/Python/RedAGPT/RedAGPT/tools/logs/runlog20230430_0416.txt:            "tool_input": "grep -E 'invalid user|invalid password' /home/host/Project/Python/RedAGPT/RedAGPT/tools/logs/*20230430_0416.txt > /home/host/Project/Python/RedAGPT/RedAGPT/tools/summary_report.txt"

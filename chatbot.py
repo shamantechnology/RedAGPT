@@ -56,6 +56,7 @@ if "Login Checker" == model:
         process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
 
         process.start()
+        process.join()
 
         seek_pos = None
         while process.is_alive:
@@ -69,11 +70,11 @@ if "Login Checker" == model:
                         messages = update_chat(messages, "assistant", log_response)
                         st.session_state.past.append(model)
                         st.session_state.generated.append(log_response)
-                        
+
                     seek_pos = runtxt.tell()
                     time.sleep(10)
 
-        process.join()
+        
 
         # messages = update_chat(messages, "assistant", response)
         # st.session_state.past.append(query)

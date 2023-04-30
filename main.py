@@ -79,6 +79,7 @@ def main():
 
         process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
         process.start()
+        process.join()
 
         seek_pos = None
         while process.is_alive:
@@ -89,13 +90,19 @@ def main():
 
                     log_lines = runtxt.readlines()
                     if len(log_lines) > 0:
-                        pprint.pprint(log_lines)
+                        log_line = ''.join(log_lines).replace('\n', '')
+                        pprint.pprint(log_line)
                     
                     seek_pos = runtxt.tell()
                     print("sleep 10")
                     time.sleep(10)
 
-        process.join()
+            process.join()
+            if process.exitcode is not None:
+                break
+        
+        print("Tool completed run")
+        
 
         
 
