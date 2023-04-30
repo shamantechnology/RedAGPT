@@ -74,7 +74,9 @@ if "Login Checker" == model:
                     seek_pos = runtxt.tell()
                     time.sleep(10)
 
-        
+            process.join()
+            if process.exitcode is not None:
+                break
 
         # messages = update_chat(messages, "assistant", response)
         # st.session_state.past.append(query)
