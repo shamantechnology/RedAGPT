@@ -87,8 +87,9 @@ def main():
                     if seek_pos:
                         runtxt.seek(seek_pos)
 
-                    if len(runtxt.readlines()) > 0:
-                        pprint.pprint(runtxt.readlines())
+                    log_lines = runtxt.readlines()
+                    if len(log_lines) > 0:
+                        pprint.pprint(log_lines)
                     
                     seek_pos = runtxt.tell()
                     print("sleep 10")
