@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 # logging
-# logs/
+logs/
 
 # models
 models/
