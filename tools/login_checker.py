@@ -35,6 +35,8 @@ from langchain.document_loaders import YoutubeLoader
 class LoginChecker:
     def __init__(self, http_url):
         self.http_url = http_url
+
+        self.pid = os.getpid()
         
         self.tools = [
             Tool(
@@ -92,7 +94,7 @@ class LoginChecker:
                 Redis.from_texts(
                     texts=["first"],
                     redis_url=os.environ["REDIS_URL"],
-                    index_name=os.environ["REDIS_INDEX_NAME"],
+                    index_name=os.environ["REDIS_INDEX_NAME"]+f"_{pid}",
                     embedding=self.embeddings
                 )
             else:
@@ -129,12 +131,12 @@ class LoginChecker:
             ai_name="Kevin",
             ai_role="White Hat Hacker",
             tools=self.tools,
-            llm=ChatOpenAI(temperature=0.8),
+            llm=ChatOpenAI(temperature=0.8, streaming=True),
             memory=self.vectorstore.as_retriever()
         )
 
         # Set verbose to be true
-        agent.chain.verbose = True
+        agent.chain.verbose = False
 
         # give prompt for running login test
         # closed for now but will need a list of different ones to choose
