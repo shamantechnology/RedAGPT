@@ -87,7 +87,7 @@ def main():
                     if seek_pos:
                         runtxt.seek(seek_pos)
 
-                    if len(runtxt.readlines) > 0:
+                    if len(runtxt.readlines()) > 0:
                         pprint.pprint(runtxt.readlines())
                     
                     seek_pos = runtxt.tell()
