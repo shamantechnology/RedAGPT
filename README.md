@@ -31,12 +31,12 @@ this ensure that all requirements are pinned and work together for ensuring repr
 
 ## Make a copy of the example environment variables file
 ```
-cp .env.template .env
+cp .env.example .env
 ```
 
 # Run the app
 ```
-streamlit run chatbot.py | tail -n +6 > tools/logs/logtest04292023.txt 
+streamlit run chatbot.py | tail -n +6 > tools/logs/logtest04292023.txt
 ```
 
 # Project Summary
@@ -60,7 +60,7 @@ Utilizing [LangChain AutoGPT Documentation](https://github.com/hwchase17/langcha
 
 Using these [goals](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L65) and declaring the type of [agent](https://github.com/shamantechnology/RedAGPT/blob/master/tools/login_checker.py#L126) to be, it runs command line tools like [Hydra](https://www.kali.org/tools/hydra/) and creates a form security test program in Python using the [selenium library](https://selenium-python.readthedocs.io/) and running it in REPL
 
-At the end it will give us a security report of vulnerabilities found, if any, and give recommendations on how to fix. 
+At the end it will give us a security report of vulnerabilities found, if any, and give recommendations on how to fix.
 
 ### Future
 * Later implementations we plan on allowing the user to task the AI to fix these issues.
