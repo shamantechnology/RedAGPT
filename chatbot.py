@@ -21,6 +21,12 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Add audio player
+audio_path = os.path.abspath("audio/blade_soundtrack.mp3")
+audio_file = open(audio_path, "rb")
+audio_bytes = audio_file.read()
+st.sidebar.audio(audio_bytes, format="audio/mp3", start_time=0)
+
 
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as f:
@@ -149,11 +155,11 @@ if model == "Login Checker":
             with st.spinner(f"Testing website {input_text}. This will take a while."):
 
                 log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
-                if not os.path.exists(os.path.abspath('tools/logs/')):
-                    os.makedirs(os.path.abspath('tools/logs/'))
-                    
+                if not os.path.exists(os.path.abspath("tools/logs/")):
+                    os.makedirs(os.path.abspath("tools/logs/"))
+
                 if not os.path.exists(log_file_path):
-                    open(log_file_path, 'w').close()
+                    open(log_file_path, "w").close()
 
                 if not st.session_state["process_started"]:
                     process = multiprocessing.Process(
