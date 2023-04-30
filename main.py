@@ -5,7 +5,11 @@ Using the menu select which test to run
 from dotenv import load_dotenv
 import validators
 from tools.login_checker import LoginChecker
-
+import multiprocessing
+import time
+import os
+from datetime import datetime
+import pprint
 
 class textformat:
     PURPLE = '\033[95m'
@@ -19,6 +23,9 @@ class textformat:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
+def run_login_checker(http_url, logfile):
+    lgcheck = LoginChecker(http_url, logfile)
+    lgcheck.run()    
 
 def main():
     load_dotenv()
@@ -66,13 +73,38 @@ def main():
             else:
                 print(f"{http_url} is not a valid URL. Try again")
 
-        lgcheck = LoginChecker(http_url)
+        # run_login_checker(http_url)
 
-        agent_response = lgcheck.run()
+        log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
 
-        print(agent_response)
+        process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
+        process.start()
+        process.join()
 
+        seek_pos = None
+        while process.is_alive:
+            if os.path.exists(log_file_path):
+                with open(log_file_path, "r") as runtxt:
+                    if seek_pos:
+                        runtxt.seek(seek_pos)
 
+                    log_lines = runtxt.readlines()
+                    if len(log_lines) > 0:
+                        log_line = ''.join(log_lines).replace('\n', '')
+                        pprint.pprint(log_line)
+                    
+                    seek_pos = runtxt.tell()
+                    print("sleep 10")
+                    time.sleep(10)
+
+            process.join()
+            if process.exitcode is not None:
+                break
+        
+        print("Tool completed run")
+        
+
+        
 
 if __name__ == "__main__":
     main()
