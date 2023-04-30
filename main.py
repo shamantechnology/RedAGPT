@@ -76,6 +76,8 @@ def main():
         # run_login_checker(http_url)
 
         log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+        if not os.path.exists(log_file_path):
+            open(log_file_path, 'w').close()
 
         process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
         process.start()

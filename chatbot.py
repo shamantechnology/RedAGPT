@@ -128,6 +128,8 @@ if model == "Login Checker":
             with st.spinner(f"Testing website {input_text}. This will take a while."):
                 
                 log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+                if not os.path.exists(log_file_path):
+                    open(log_file_path, 'w').close()
 
                 if not st.session_state['process_started']:
                     process = multiprocessing.Process(target=run_login_checker, args=(input_text, log_file_path,))
