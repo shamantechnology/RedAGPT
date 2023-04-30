@@ -5,6 +5,8 @@ Using the menu select which test to run
 from dotenv import load_dotenv
 import validators
 from tools.login_checker import LoginChecker
+from contextlib import redirect_stdout
+import io
 
 
 class textformat:
@@ -67,10 +69,7 @@ def main():
                 print(f"{http_url} is not a valid URL. Try again")
 
         lgcheck = LoginChecker(http_url)
-
-        agent_response = lgcheck.run()
-
-        print(agent_response)
+        lgcheck.run()
 
 
 

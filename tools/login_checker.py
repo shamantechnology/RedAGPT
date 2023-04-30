@@ -8,20 +8,15 @@ Uses the hydra cli program
 https://www.cyberpunk.rs/password-cracker-thc-hydra
 """
 import os
-# import string
-# import random
+import uuid
 
 from langchain.agents import Tool
 from langchain.utilities import BashProcess
 from langchain.tools.file_management.write import WriteFileTool
 from langchain.tools.file_management.read import ReadFileTool
 from langchain.tools.python.tool import PythonREPLTool
-# from langchain.tools.interaction.tool import StdInInquireTool
 from langchain.utilities import GoogleSearchAPIWrapper
 
-# from langchain.vectorstores import FAISS
-# import faiss
-from langchain.docstore import InMemoryDocstore
 from langchain.vectorstores.redis import Redis
 import redis
 from langchain.embeddings import OpenAIEmbeddings
@@ -29,14 +24,27 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.experimental import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
-from langchain.document_loaders import YoutubeLoader
+
+
+@contextlib.contextmanager
+def capture():
+    import sys
+    oldout,olderr = sys.stdout, sys.stderr
+    try:
+        out=[StringIO(), StringIO()]
+        sys.stdout,sys.stderr = out
+        yield out
+    finally:
+        sys.stdout,sys.stderr = oldout, olderr
+        out[0] = out[0].getvalue()
+        out[1] = out[1].getvalue()
 
 
 class LoginChecker:
     def __init__(self, http_url):
         self.http_url = http_url
 
-        self.pid = os.getpid()
+        self.pid = uuid.uuid4()
         
         self.tools = [
             Tool(
@@ -67,7 +75,7 @@ class LoginChecker:
 
         self.goals = [
             f"""
-            Use the hydra command in the local terminal to scan the url {self.http_url} `hydra -L {data_path + "/username_list.txt"} -P {data_path + "/password_list.txt"} -s PORT HOSTNAME http-post-form -o {logs_path + "/hydra_log.txt"} "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password"
+            Use the hydra command in the local terminal to scan the url {self.http_url} `hydra -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} -s PORT HOSTNAME http-post-form -o {logs_path + "/hydra_log.txt"} "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password"
             """,
             f"""
             Using selenium python package and its WebDriver API, create a python program that iterates through the username list {data_path + "/username_list.txt"} with every password  at {data_path + "/password_list.txt"} and try to login at {self.http_url} and store the python program at {bin_path}
@@ -85,32 +93,25 @@ class LoginChecker:
             # check if index name exists and if not create it
             # connect to Redis server
             redis_check = redis.Redis.from_url(os.environ["REDIS_URL"])
+            redis_idx_name = f'{os.environ["REDIS_INDEX_NAME"]}_{self.pid}'
 
             # check if the index exists
             if len(redis_check.keys(
-                "doc:{}*".format(os.environ["REDIS_INDEX_NAME"])
+                "doc:{}*".format(redis_idx_name)
             )) == 0:
                 # create the index if it doesn't exist
                 Redis.from_texts(
                     texts=["first"],
                     redis_url=os.environ["REDIS_URL"],
-                    index_name=os.environ["REDIS_INDEX_NAME"]+f"_{pid}",
+                    index_name=redis_idx_name,
                     embedding=self.embeddings
                 )
 
             self.vectorstore = Redis(
                 redis_url=os.environ["REDIS_URL"],
-                index_name=os.environ["REDIS_INDEX_NAME"],
+                index_name=redis_idx_name,
                 embedding_function=self.embeddings.embed_query
             )
-
-            # using faiss
-            # possibly can use redis but will need to update
-            # the landchain agent.py in experimental for autogpt
-            # to use add_text
-            # embedding_size = 1536
-            # index = faiss.IndexFlatL2(embedding_size)
-            # self.vectorstore = FAISS(self.embeddings.embed_query, index, InMemoryDocstore({}), {})
 
         except Exception as err:
             print("Redis creation failed {err}")
