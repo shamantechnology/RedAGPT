@@ -1,1 +1,0 @@
-No security issues were found in the system during the hydra scan.
