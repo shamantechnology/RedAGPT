@@ -50,11 +50,6 @@ def run_login_checker(http_url, logfile):
     lgcheck.run()
 
 
-def update_chat(messages, role, content):
-    messages.append({"role": role, "content": content})
-    return messages
-
-
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
 add_bg_from_local(bg_img_path)
@@ -68,14 +63,19 @@ st.markdown('<h1 style="color: white;">RedTeamAGPT</h1>', unsafe_allow_html=True
 if "show_first_chatbot_msg" not in st.session_state:
     st.session_state["show_first_chatbot_msg"] = True
 
-if "show_url_msg_once" not in st.session_state:
-    st.session_state["show_url_msg_once"] = True
-
 if "set_local_or_remote" not in st.session_state:
     st.session_state["set_local_or_remote"] = False
-
 if "user_local_remote" not in st.session_state:
     st.session_state["user_local_remote"] = None
+
+if "show_url_msg_once" not in st.session_state:
+    st.session_state["show_url_msg_once"] = True
+if "showed_url_msg_once" not in st.session_state:
+    st.session_state["showed_url_msg_once"] = False
+if "save_url_msg" not in st.session_state:
+    st.session_state["save_url_msg"] = None
+if "edited_url_msg" not in st.session_state:
+    st.session_state["edited_url_msg"] = False
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
@@ -123,11 +123,10 @@ if model == "Login Checker":
             if not st.session_state[
                 "show_first_chatbot_msg"
             ]:  # show this msg in the bot only if it's not the first msg of the bot
-                st.session_state["generated"].append("Give Local or Remote")
+                st.session_state["generated"].append("Local or Remote")
 
     if st.session_state["set_local_or_remote"]:
 
-        #################### this part: still not shows the msg before u give the url but afterwards but that's ok #######
         # The bot should ask the user to give a url or ip based on their previous option
         if st.session_state["show_url_msg_once"]:
             if st.session_state["user_local_remote"] == "Local":
@@ -135,18 +134,27 @@ if model == "Login Checker":
             else:  # Remote
                 msg = "REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN"
 
-            st.session_state["generated"].append(msg)
-            message(msg, key=str(len(st.session_state["generated"])))
-
+            st.session_state["save_url_msg"] = msg
             st.session_state["show_url_msg_once"] = False
             st.experimental_rerun()  # Rerun script to show the url msg in the bot
-        ###################################################################################################################
 
         if not st.session_state["allow_url_to_be_checked"] and len(input_text) != 0:
             if validators.url(input_text):
                 st.session_state["allow_url_to_be_checked"] = True
             else:
-                st.session_state["generated"].append("The given URL is invalid")
+                # Edit the url msg from "GIVE URL" TO "THE GIVEN URL IS INVALID"
+                # as we show one response from the bot and one from the user for each interaction
+                # and as we provide the "GIVE URL" to direct the user to give a url
+                # then won't be able to get a response by the bot based on the user's input
+                # thus, the needed change but it only need to be done once
+                if (
+                    st.session_state["showed_url_msg_once"]
+                    and not st.session_state["edited_url_msg"]
+                ):
+                    st.session_state["generated"][-1] = "THE GIVEN URL IS INVALID"
+                    st.session_state["edited_url_msg"] = True
+                else:
+                    st.session_state["generated"].append("THE GIVEN URL IS INVALID")
 
         if (
             st.session_state["allow_url_to_be_checked"]
@@ -195,6 +203,18 @@ if model == "Login Checker":
 
                 st.session_state["url_checked"] = True
 
+
+## Show the give url msg in the chatbot
+if (
+    not st.session_state["show_url_msg_once"]
+    and not st.session_state["showed_url_msg_once"]
+):
+    st.session_state["generated"].append(st.session_state["save_url_msg"])
+    message(
+        st.session_state["save_url_msg"],
+        key=str(len(st.session_state["generated"]) - 1),
+    )
+    st.session_state["showed_url_msg_once"] = True
 
 ## Show the first msg in the chatbot
 if st.session_state["show_first_chatbot_msg"]:
