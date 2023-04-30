@@ -44,31 +44,27 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 st.markdown('<h1 style="color: white;">RedTeamAGPT</h1>', unsafe_allow_html=True)
 
+if "show_first_chatbot_msg" not in st.session_state:
+    st.session_state['show_first_chatbot_msg'] = True
+
+if 'set_local_or_remote' not in st.session_state:
+    st.session_state['set_local_or_remote'] = False
 
 if 'messages' not in st.session_state:
     st.session_state['messages'] = []
 
-## First msgs
-# if 'generated' not in st.session_state:
-#     st.session_state['generated'] = [update_chat([], "user", "okay")]
-
-# if 'past' not in st.session_state:
-#     st.session_state['past'] = [update_chat([], "assistant", "Enter in the url")]
-
+# First msgs
 if 'generated' not in st.session_state:
-    st.session_state['generated'] = []
+    st.session_state['generated'] = ["Local or Remote"]
 
 if 'past' not in st.session_state:
-    st.session_state['past'] = []
+    st.session_state['past'] = [""]
 
 if 'allow_url_to_be_checked' not in st.session_state:
     st.session_state['allow_url_to_be_checked'] = False
 
 if 'url_checked' not in st.session_state:
     st.session_state['url_checked'] = False
-
-if 'first_chatbot_msg' not in st.session_state:
-    st.session_state['first_chatbot_msg'] = True
 
 if 'seek_pos' not in st.session_state:
     st.session_state['seek_pos'] = None
@@ -77,80 +73,87 @@ if 'process_started' not in st.session_state:
     st.session_state['process_started'] = False
 
 
-## Try to show the first msg in the bot 
-
-# if st.session_state['first_chatbot_msg']:
-#     for i in range(len(st.session_state['generated'])-1, -1, -1):
-#         message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-#         message(st.session_state["generated"][i], key=str(i))
-
-#     with st.expander("Show Messages"):
-#         st.write(st.session_state['generated'])
-
-#     st.session_state['first_chatbot_msg'] = False
-
-
 tools = ["Login Checker"]
 model = st.selectbox("Tools", options=tools)
 
-
 if model == "Login Checker":
-    messages = st.session_state['messages']
+    # messages = st.session_state['messages']
 
-    messages = update_chat(messages, "assistant", "Enter in the url")
-    http_url = st.text_input("", placeholder="Enter the URL here", key="input_http", label_visibility='hidden')
+    # messages = update_chat(messages, "assistant", "Enter in the url")
 
-    if not st.session_state['allow_url_to_be_checked'] and len(http_url) != 0:
-        if validators.url(http_url):
-            st.session_state['allow_url_to_be_checked'] = True
+    if not st.session_state['set_local_or_remote']:
+        local_or_remote = st.text_input("", placeholder="Local or Remote", key="input_local_remote", label_visibility='hidden')
+        
+        st.session_state['past'].append(local_or_remote)
+        if local_or_remote == "Local" or local_or_remote == "Remote":
+            st.session_state['set_local_or_remote'] = True
         else:
-            st.error("The given url is wrong")
+            if not st.session_state['show_first_chatbot_msg']:
+                st.session_state['generated'].append("Give Local or Remote")
 
-    if st.session_state['allow_url_to_be_checked'] and not st.session_state['url_checked']:
-        with st.spinner(f"Testing website {http_url}. This will take a while."):
-            messages = st.session_state['messages']
-            
-            log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
-            process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
 
-            process.start()
-            process.join()
+    if st.session_state['set_local_or_remote']:
+        http_url = st.text_input("", placeholder="Enter URL here", key="input_http", label_visibility='hidden')
 
-            if not st.session_state['process_started']:
-                process = multiprocessing.Process(target=run_login_checker, args=(http_url, log_file_path,))
-                process.start()
-                st.session_state['process_started'] = True
-
-            if os.path.exists(log_file_path):
-                with open(log_file_path, "r") as runtxt:
-                    if st.session_state['seek_pos']:
-                        runtxt.seek(st.session_state['seek_pos'])
-
-                    lines = runtxt.readlines()
-                    if len(lines) > 0:
-                        log_response = lines
-                        messages = update_chat(messages, "assistant", log_response)
-                        st.session_state.past.append(model)
-                        st.session_state.generated.append(log_response)
-
-                    st.session_state['seek_pos'] = runtxt.tell()
-
-            if not process.is_alive():
-                st.success("Login Checker process has completed.")
-                st.session_state['process_started'] = False
+        st.session_state['past'].append(http_url)
+        if not st.session_state['allow_url_to_be_checked'] and len(http_url) != 0:
+            if validators.url(http_url):
+                st.session_state['allow_url_to_be_checked'] = True
             else:
-                st.experimental_rerun()
+                st.session_state['generated'].append("The given URL is invalid")
+
+        if st.session_state['allow_url_to_be_checked'] and not st.session_state['url_checked']:
+            with st.spinner(f"Testing website {http_url}. This will take a while."):
+                # messages = st.session_state['messages']
+                
+                log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+
+                if not st.session_state['process_started']:
+                    process = multiprocessing.Process(target=run_login_checker, args=(http_url, log_file_path,))
+                    process.start()
+                    process.join()
+                    st.session_state['process_started'] = True
+
+                if os.path.exists(log_file_path):
+                    with open(log_file_path, "r") as runtxt:
+                        if st.session_state['seek_pos']:
+                            runtxt.seek(st.session_state['seek_pos'])
+
+                        lines = runtxt.readlines()
+                        if len(lines) > 0:
+                            log_response = lines
+                            # messages = update_chat(messages, "assistant", log_response)
+                            st.session_state.past.append(model)
+                            st.session_state.generated.append(log_response)
+
+                        st.session_state['seek_pos'] = runtxt.tell()
+
+                process.join()
+                if not process.is_alive():
+                    st.success("Login Checker process has completed.")
+                    st.session_state['process_started'] = False
+                else:
+                    st.experimental_rerun()
 
 
-            st.session_state['url_checked'] = True
-            
+                st.session_state['url_checked'] = True
+
+
+
+## Show the first msg in the chatbot
+if st.session_state['show_first_chatbot_msg']:
+    message(st.session_state["generated"], key=str(0))
+    st.session_state['show_first_chatbot_msg'] = False
+
 
 ## Show msgs in the bot
-if st.session_state['generated']:
+## if the two lists do not match, then won't be shown
+filtered_past = [(i, msg) for i, msg in enumerate(st.session_state['past']) if len(msg) != 0]
+filtered_generated = [(i, msg) for i, msg in enumerate(st.session_state['generated']) if len(msg) != 0]
 
-    for i in range(len(st.session_state['generated'])-1, -1, -1):
-        message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-        message(st.session_state["generated"][i], key=str(i))
+for (past_i, past_msg), (generated_i, generated_msg) in reversed(list(zip(filtered_past, filtered_generated))):
+    message(past_msg, is_user=True, key=str(past_i) + '_user')
+    message(generated_msg, key=str(generated_i))
 
-    with st.expander("Show Messages"):
-        st.write(messages)
+    # with st.expander("Show Messages"):
+    #     st.write(messages)
