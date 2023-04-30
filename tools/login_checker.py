@@ -85,7 +85,7 @@ class LoginChecker:
         logging.basicConfig(
             filename=self.logging_file,
             level=logging.INFO,
-            format="\n%(asctime)s - %(name)s - %(levelname)s - %(message)s\n")
+            format="\n%(message)s\n")
 
         self.logging = logging.getLogger(__name__)
 
