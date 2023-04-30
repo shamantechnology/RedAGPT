@@ -69,7 +69,7 @@ class LoginChecker:
                 You should ask targeted questions
                 """
             ),
-            # PythonREPLTool(),
+            PythonREPLTool(),
             Tool(
                 "bash",
                 BashProcess().run,
@@ -100,15 +100,13 @@ class LoginChecker:
             # f"Stay on task with your goals and don't get into a loop",
             # f"Check if log files {info_log} and {error_log} exist and if not, create them",
             f"""
-            In bash run the command 'hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}'. Only use bash.
+            In bash run the command 'hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}'. Only use bash. If hydra is not installed, move on to step 2 and don't try to install it
             """,
-            # "Understand what the selenium python library is",
-            # f"Read the source of the website {self.http_url} using curl",
-            # f"""
-            # Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {bin_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {bin_path}. Place all stdout to {info_log}. Place all stderr to {error_log}.
-            # """,
             f"""
-            Write a summary security report named security_report.txt at {logs_path+"/"} using the {info_log} log only. Read and analyze the log using the read_file tool. Use the write_file tool and no other text editor. Include a summery at the end of the report detailing if anything found wrong and how to fix issues. If {info_log} is empty just write "No security issues" in security report. Do not use any other tools except write_file, read_file and grep
+            Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {info_log} and the stderr log {error_log}. If this doesn't work continue on to next step.
+            """,
+            f"""
+            If any of the above steps worked, write a summary security report named security_report.txt at {logs_path+"/"} using the {info_log} log only. Read and analyze the log using the read_file tool. Use the write_file tool and no other text editor. Include a summery at the end of the report detailing if anything found wrong and how to fix issues. If {info_log} is empty just write "No security issues" in security report. Do not use any other tools except write_file, read_file and grep. If any of the above steps failed, write "No security tools found on machine" in security_report.txt at {logs_path+"/"}
             """,
             "Congrats, you have completed all the tasks successfully, once the report is created, stop all other tasks"
         ]
