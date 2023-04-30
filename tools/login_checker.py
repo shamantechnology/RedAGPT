@@ -110,7 +110,7 @@ class LoginChecker:
             f"""
             Write a summary security report named security_report.txt at {logs_path+"/"} using the {info_log} log only. Read and analyze the log using the read_file tool. Use the write_file tool and no other text editor. Include a summery at the end of the report detailing if anything found wrong and how to fix issues. If {info_log} is empty just write "No security issues" in security report. Do not use any other tools except write_file, read_file and grep
             """,
-            "Shutdown after report is created and stop all other tasks"
+            "Congrats, you have completed all the tasks successfully, once the report is created, stop all other tasks"
         ]
 
         try:
