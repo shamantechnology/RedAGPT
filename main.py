@@ -7,6 +7,8 @@ import validators
 from tools.login_checker import LoginChecker
 from contextlib import redirect_stdout
 import io
+import multiprocessing
+import sys
 
 
 class textformat:
@@ -20,6 +22,9 @@ class textformat:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+
+def log_proc():
+    print(f"\nlog_proc {sys.stdout.read()}\n")
 
 
 def main():
@@ -68,8 +73,13 @@ def main():
             else:
                 print(f"{http_url} is not a valid URL. Try again")
 
+        process = multiprocessing.Process(target=log_proc)
+        process.start()
+        
         lgcheck = LoginChecker(http_url)
         lgcheck.run()
+
+        process.join()
 
 
 
