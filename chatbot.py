@@ -7,8 +7,25 @@ import validators
 import multiprocessing
 import time
 from datetime import datetime
+import base64
 
 from tools.login_checker import LoginChecker
+
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as f:
+        img_bytes = f.read()
+
+    st.markdown(
+        f"""
+        <style>
+        .stApp {{
+            background-image: url('data:image/png;base64,{base64.b64encode(img_bytes).decode()}');
+            background-size: cover;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 def run_login_checker(http_url, logfile):
     lgcheck = LoginChecker(http_url, logfile)
@@ -18,11 +35,15 @@ def update_chat(messages, role, content):
     messages.append({"role": role, "content": content})
     return messages
 
+# Add img to the bg
+bg_img_path = os.path.abspath("bg_img.jpg")
+add_bg_from_local(bg_img_path)
+
 
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
-st.title("RedTeamAGPT")
+st.markdown('<h1 style="color: white;">RedTeamAGPT</h1>', unsafe_allow_html=True)
 
 
 if 'messages' not in st.session_state:
@@ -69,21 +90,24 @@ if 'process_started' not in st.session_state:
 
 #     st.session_state['first_chatbot_msg'] = False
 
+
 tools = ["Login Checker"]
-model = st.selectbox("Select a tool", options=tools)
+model = st.selectbox("Tools", options=tools)
+
 
 if model == "Login Checker":
     messages = st.session_state['messages']
 
-    messages = update_chat(messages, "user", "Enter in the url")
-    # http_url = st.text_input("", key="input_http")
-    http_url = st.text_input("", placeholder="Enter the URL here", key="input_http")
+    messages = update_chat(messages, "assistant", "Enter in the url")
+    http_url = st.text_input("", placeholder="Enter the URL here", key="input_http", label_visibility='hidden')
 
-    if not st.session_state['allow_url_to_be_checked']:
+    if not st.session_state['allow_url_to_be_checked'] and len(http_url) != 0:
         if validators.url(http_url):
             st.session_state['allow_url_to_be_checked'] = True
+        else:
+            st.error("The given url is wrong")
 
-    if st.session_state['allow_url_to_be_checked'] and st.session_state['url_checked'] == False:
+    if st.session_state['allow_url_to_be_checked'] and not st.session_state['url_checked']:
         with st.spinner(f"Testing website {http_url}. This will take a while."):
             messages = st.session_state['messages']
             
