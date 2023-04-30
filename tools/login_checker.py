@@ -97,15 +97,6 @@ class LoginChecker:
                     index_name=os.environ["REDIS_INDEX_NAME"]+f"_{pid}",
                     embedding=self.embeddings
                 )
-            else:
-                # clear and reset if it does
-                redis_check.flushall()
-                Redis.from_texts(
-                    texts=["first"],
-                    redis_url=os.environ["REDIS_URL"],
-                    index_name=os.environ["REDIS_INDEX_NAME"],
-                    embedding=self.embeddings
-                )
 
             self.vectorstore = Redis(
                 redis_url=os.environ["REDIS_URL"],
