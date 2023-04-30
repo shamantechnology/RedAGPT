@@ -128,6 +128,9 @@ if model == "Login Checker":
             with st.spinner(f"Testing website {input_text}. This will take a while."):
                 
                 log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+                if not os.path.exists(os.path.abspath('tools/logs/')):
+                    os.makedirs(os.path.abspath('tools/logs/'))
+                    
                 if not os.path.exists(log_file_path):
                     open(log_file_path, 'w').close()
 
