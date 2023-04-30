@@ -47,16 +47,21 @@ st.markdown('<h1 style="color: white;">RedTeamAGPT</h1>', unsafe_allow_html=True
 if "show_first_chatbot_msg" not in st.session_state:
     st.session_state['show_first_chatbot_msg'] = True
 
+if "show_url_msg_once" not in st.session_state:
+    st.session_state['show_url_msg_once'] = True
+
 if 'set_local_or_remote' not in st.session_state:
     st.session_state['set_local_or_remote'] = False
+
+if 'user_local_remote' not in st.session_state:
+    st.session_state['user_local_remote'] = None
 
 if 'messages' not in st.session_state:
     st.session_state['messages'] = []
 
-# First msgs
+# First msgs in the bot
 if 'generated' not in st.session_state:
-    st.session_state['generated'] = ["Local or Remote"]
-
+    st.session_state['generated'] = ["Local OR Remote"]
 if 'past' not in st.session_state:
     st.session_state['past'] = [""]
 
@@ -77,39 +82,55 @@ tools = ["Login Checker"]
 model = st.selectbox("Tools", options=tools)
 
 if model == "Login Checker":
-    # messages = st.session_state['messages']
+    if not st.session_state['set_local_or_remote']:
+        placeholder = "Local or Remote"
+    else:
+        placeholder = "Enter URL here"
 
-    # messages = update_chat(messages, "assistant", "Enter in the url")
+    input_text = st.text_input("", placeholder=placeholder, key="input_text", label_visibility='hidden')
+    st.session_state['past'].append(input_text)
+
 
     if not st.session_state['set_local_or_remote']:
-        local_or_remote = st.text_input("", placeholder="Local or Remote", key="input_local_remote", label_visibility='hidden')
-        
-        st.session_state['past'].append(local_or_remote)
-        if local_or_remote == "Local" or local_or_remote == "Remote":
+
+        if input_text == "Local" or input_text == "Remote":
+            st.session_state["user_local_remote"] = input_text # save the user's input
             st.session_state['set_local_or_remote'] = True
+            st.experimental_rerun() # Rerun the script so the "Enter URL here" can be shown in the box
         else:
-            if not st.session_state['show_first_chatbot_msg']:
+            if not st.session_state['show_first_chatbot_msg']: # show this msg in the bot only if it's not the first msg of the bot
                 st.session_state['generated'].append("Give Local or Remote")
 
-
     if st.session_state['set_local_or_remote']:
-        http_url = st.text_input("", placeholder="Enter URL here", key="input_http", label_visibility='hidden')
 
-        st.session_state['past'].append(http_url)
-        if not st.session_state['allow_url_to_be_checked'] and len(http_url) != 0:
-            if validators.url(http_url):
+        #################### this part: still not shows the msg before u give the url but afterwards but that's ok #######
+        # The bot should ask the user to give a url or ip based on their previous option
+        if st.session_state["show_url_msg_once"]:
+            if st.session_state["user_local_remote"] == "Local":
+                msg = "GIVE URL"
+            else: # Remote
+                msg = "REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN"
+            
+            st.session_state['generated'].append(msg)
+            message(msg, key=str(len(st.session_state['generated'])))
+
+            st.session_state["show_url_msg_once"] = False
+            st.experimental_rerun() # Rerun script to show the url msg in the bot
+        ###################################################################################################################
+        
+        if not st.session_state['allow_url_to_be_checked'] and len(input_text) != 0:
+            if validators.url(input_text):
                 st.session_state['allow_url_to_be_checked'] = True
             else:
                 st.session_state['generated'].append("The given URL is invalid")
 
         if st.session_state['allow_url_to_be_checked'] and not st.session_state['url_checked']:
-            with st.spinner(f"Testing website {http_url}. This will take a while."):
-                # messages = st.session_state['messages']
+            with st.spinner(f"Testing website {input_text}. This will take a while."):
                 
                 log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
 
                 if not st.session_state['process_started']:
-                    process = multiprocessing.Process(target=run_login_checker, args=(http_url, log_file_path,))
+                    process = multiprocessing.Process(target=run_login_checker, args=(input_text, log_file_path,))
                     process.start()
                     process.join()
                     st.session_state['process_started'] = True
@@ -122,7 +143,6 @@ if model == "Login Checker":
                         lines = runtxt.readlines()
                         if len(lines) > 0:
                             log_response = lines
-                            # messages = update_chat(messages, "assistant", log_response)
                             st.session_state.past.append(model)
                             st.session_state.generated.append(log_response)
 
@@ -137,7 +157,6 @@ if model == "Login Checker":
 
 
                 st.session_state['url_checked'] = True
-
 
 
 ## Show the first msg in the chatbot
