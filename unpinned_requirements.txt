@@ -5,3 +5,6 @@ faiss-cpu
 google-api-python-client
 openai
 tiktoken
+redis
+streamlit
+streamlit-chat
