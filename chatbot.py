@@ -24,69 +24,111 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 st.title("RedTeamAGPT")
 
-tools = ["Login Checker"]
-model = st.selectbox("Select a tool", options=tools)
 
-
-if 'generated' not in st.session_state:
-    st.session_state['generated'] = []
-if 'past' not in st.session_state:
-    st.session_state['past'] = []
 if 'messages' not in st.session_state:
     st.session_state['messages'] = []
 
+## First msgs
+# if 'generated' not in st.session_state:
+#     st.session_state['generated'] = [update_chat([], "user", "okay")]
 
-if "Login Checker" == model:
-    while True:
-        messages = update_chat(messages, "user", "Enter in the url")
-        http_url =  st.text_input("", key="input")
+# if 'past' not in st.session_state:
+#     st.session_state['past'] = [update_chat([], "assistant", "Enter in the url")]
+
+if 'generated' not in st.session_state:
+    st.session_state['generated'] = []
+
+if 'past' not in st.session_state:
+    st.session_state['past'] = []
+
+if 'allow_url_to_be_checked' not in st.session_state:
+    st.session_state['allow_url_to_be_checked'] = False
+
+if 'url_checked' not in st.session_state:
+    st.session_state['url_checked'] = False
+
+if 'first_chatbot_msg' not in st.session_state:
+    st.session_state['first_chatbot_msg'] = True
+
+if 'seek_pos' not in st.session_state:
+    st.session_state['seek_pos'] = None
+
+if 'process_started' not in st.session_state:
+    st.session_state['process_started'] = False
+
+
+## Try to show the first msg in the bot 
+
+# if st.session_state['first_chatbot_msg']:
+#     for i in range(len(st.session_state['generated'])-1, -1, -1):
+#         message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+#         message(st.session_state["generated"][i], key=str(i))
+
+#     with st.expander("Show Messages"):
+#         st.write(st.session_state['generated'])
+
+#     st.session_state['first_chatbot_msg'] = False
+
+tools = ["Login Checker"]
+model = st.selectbox("Select a tool", options=tools)
+
+if model == "Login Checker":
+    messages = st.session_state['messages']
+
+    messages = update_chat(messages, "user", "Enter in the url")
+    # http_url = st.text_input("", key="input_http")
+    http_url = st.text_input("", placeholder="Enter the URL here", key="input_http")
+
+    if not st.session_state['allow_url_to_be_checked']:
         if validators.url(http_url):
-            break
-        else:
-            error_resp = f"{http_url} is not a valid URL. Try again"
-            update_chat(messages, "assistant", error_resp)
-            st.session_state.past.append(model)
-            st.session_state.generated.append(error_resp)
+            st.session_state['allow_url_to_be_checked'] = True
 
-    with st.spinner("Testing website {http_url}. This will take a while."):
-        messages = st.session_state['messages']
-        
-        log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+    if st.session_state['allow_url_to_be_checked'] and st.session_state['url_checked'] == False:
+        with st.spinner(f"Testing website {http_url}. This will take a while."):
+            messages = st.session_state['messages']
+            
+            log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+            process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
 
-        process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
+            process.start()
+            process.join()
 
-        process.start()
-        process.join()
+            if not st.session_state['process_started']:
+                process = multiprocessing.Process(target=run_login_checker, args=(http_url, log_file_path,))
+                process.start()
+                st.session_state['process_started'] = True
 
-        seek_pos = None
-        while process.is_alive:
             if os.path.exists(log_file_path):
                 with open(log_file_path, "r") as runtxt:
-                    if seek_pos:
-                        runtxt.seek(seek_pos)
+                    if st.session_state['seek_pos']:
+                        runtxt.seek(st.session_state['seek_pos'])
 
-                    if len(runtxt.readlines) > 0:
-                        log_response = runtxt.readlines()
+                    lines = runtxt.readlines()
+                    if len(lines) > 0:
+                        log_response = lines
                         messages = update_chat(messages, "assistant", log_response)
                         st.session_state.past.append(model)
                         st.session_state.generated.append(log_response)
 
-                    seek_pos = runtxt.tell()
-                    time.sleep(10)
+                    st.session_state['seek_pos'] = runtxt.tell()
 
-            process.join()
-            if process.exitcode is not None:
-                break
+            if not process.is_alive():
+                st.success("Login Checker process has completed.")
+                st.session_state['process_started'] = False
+            else:
+                st.experimental_rerun()
 
-        # messages = update_chat(messages, "assistant", response)
-        # st.session_state.past.append(query)
-        # st.session_state.generated.append(response)
 
-if st.session_state['generated']:
+            st.session_state['url_checked'] = True
+            
 
-    for i in range(len(st.session_state['generated'])-1, -1, -1):
-        message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
-        message(st.session_state["generated"][i], key=str(i))
+## Show msgs in the bot
 
-    with st.expander("Show Messages"):
-        st.write(messages)
+# if st.session_state['generated']:
+
+#     for i in range(len(st.session_state['generated'])-1, -1, -1):
+#         message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+#         message(st.session_state["generated"][i], key=str(i))
+
+#     with st.expander("Show Messages"):
+#         st.write(messages)
