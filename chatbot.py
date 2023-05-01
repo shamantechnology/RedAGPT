@@ -28,6 +28,10 @@ audio_file = open(audio_path, "rb")
 audio_bytes = audio_file.read()
 st.sidebar.audio(audio_bytes, format="audio/mp3", start_time=0)
 
+log_dict = {
+    "lfp": None,
+    "ssp": None
+}
 
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as f:
@@ -180,9 +184,9 @@ if model == "Login Checker":
 
                 process.join()
                 if not process.is_alive():
-                    log_dict = queue.get()
-                    log_file_path = log_dict["lfp"]
-                    security_summary_path = log_dict["ssp"]
+                    log_after_dict = queue.get()
+                    log_file_path = log_after_dict["lfp"]
+                    security_summary_path = log_after_dict["ssp"]
 
                     with st.expander("debug log"):
                         if os.path.exists(log_file_path):
