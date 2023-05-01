@@ -77,9 +77,6 @@ if "save_url_msg" not in st.session_state:
 if "edited_url_msg" not in st.session_state:
     st.session_state["edited_url_msg"] = False
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
-
 # First msgs in the bot
 if "generated" not in st.session_state:
     st.session_state["generated"] = ["Local OR Remote"]
@@ -88,13 +85,11 @@ if "past" not in st.session_state:
 
 if "allow_url_to_be_checked" not in st.session_state:
     st.session_state["allow_url_to_be_checked"] = False
-
 if "url_checked" not in st.session_state:
     st.session_state["url_checked"] = False
 
 if "seek_pos" not in st.session_state:
     st.session_state["seek_pos"] = None
-
 if "process_started" not in st.session_state:
     st.session_state["process_started"] = False
 
@@ -123,7 +118,7 @@ if model == "Login Checker":
             if not st.session_state[
                 "show_first_chatbot_msg"
             ]:  # show this msg in the bot only if it's not the first msg of the bot
-                st.session_state["generated"].append("Local or Remote")
+                st.session_state["generated"].append("Local OR Remote")
 
     if st.session_state["set_local_or_remote"]:
 
@@ -204,7 +199,7 @@ if model == "Login Checker":
                 st.session_state["url_checked"] = True
 
 
-## Show the give url msg in the chatbot
+# Show the "GIVE URL" msg in the chatbot
 if (
     not st.session_state["show_url_msg_once"]
     and not st.session_state["showed_url_msg_once"]
@@ -216,14 +211,14 @@ if (
     )
     st.session_state["showed_url_msg_once"] = True
 
-## Show the first msg in the chatbot
+# Show the first msg in the chatbot
 if st.session_state["show_first_chatbot_msg"]:
     message(st.session_state["generated"], key=str(0))
     st.session_state["show_first_chatbot_msg"] = False
 
 
-## Show msgs in the bot
-## if the two lists do not match, then won't be shown
+# Show all the msgs in the bot from the start
+# if the two lists do not match in size, then won't be shown
 filtered_past = [
     (i, msg) for i, msg in enumerate(st.session_state["past"]) if len(msg) != 0
 ]
@@ -236,6 +231,3 @@ for (past_i, past_msg), (generated_i, generated_msg) in reversed(
 ):
     message(past_msg, is_user=True, key=str(past_i) + "_user")
     message(generated_msg, key=str(generated_i))
-
-    # with st.expander("Show Messages"):
-    #     st.write(messages)
