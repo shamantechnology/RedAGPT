@@ -1,8 +1,11 @@
-# RED Auto-GPT
-## Security Red Team Auto-GPT tool kit
-
-<p align="center" > 
-    ![RedAGPT Logo](imgs/web_icon.png) 
+<p align="center"> 
+    <h1>RED Auto-GPT</h1>
+</p>
+<p align="center">
+    <h2> Security Red Team Auto-GPT tool kit </h2>
+</p>
+<p align="center" >
+    <img src="imgs/web_icon.png" alt="RedAGPT Logo" align="center">
 </p>
 
 We are working on creating a tool kit for security professionals that will help test network and other vulnerabilities for home and office using AutoGPT and Langchain
