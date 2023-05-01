@@ -102,8 +102,10 @@ class LoginChecker:
             # f"Stay on task with your goals and don't get into a loop",
             # f"Check if log files {info_log} and {error_log} exist and if not, create them",
             f"""
-            With the bash tool, run the command below. Only use bash. Don't try to install hydra. If hydra command failed, move on to step 2. 
+            Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2.
+            ```bash 
             hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}
+            ```
             """,
             # f"""
             # If step 1 failed, try this step. If not, continue to step 3. Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {info_log} and the stderr log {error_log}. If this doesn't work continue on to next step.
@@ -172,4 +174,8 @@ class LoginChecker:
             memory=self.vectorstore.as_retriever()
         )
         agent.chain.verbose = False
-        agent.run(self.goals)
+
+        try:
+            agent.run(self.goals)
+        except Exception as err:
+            print(f"AutoGPT failure {err}")
