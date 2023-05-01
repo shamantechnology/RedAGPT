@@ -36,6 +36,19 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.experimental import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
+class StreamToLogger:
+    """
+    Fake file-like stream object that redirects writes to a logger instance.
+    """
+    def __init__(self, logger, log_level=logging.INFO):
+        self.logger = logger
+        self.log_level = log_level
+        self.linebuf = ''
+
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            self.logger.log(self.log_level, line.rstrip())
+
 class LoginChecker:
     def __init__(self, http_url, logfile):
         # prompt for the agent to use, will be a list
@@ -51,7 +64,7 @@ class LoginChecker:
             os.remove(self.logging_file)
         except OSError:
             pass
-
+        
         logging.basicConfig(
             filename=self.logging_file,
             level=logging.INFO,
@@ -70,7 +83,7 @@ class LoginChecker:
                 You should ask targeted questions
                 """
             ),
-            PythonREPLTool(),
+            # PythonREPLTool(),
             # ShellTool(),
             Tool(
                 "bash",
@@ -102,9 +115,9 @@ class LoginChecker:
             # f"Stay on task with your goals and don't get into a loop",
             # f"Check if log files {info_log} and {error_log} exist and if not, create them",
             f"""
-            Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2.
+            Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2. Do not use sudo.
             ```bash 
-            hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}
+            hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password" > {info_log} 2> {error_log}
             ```
             """,
             # f"""
@@ -117,6 +130,7 @@ class LoginChecker:
         ]
 
         try:
+            sys.stdout = StreamToLogger(self.logging, logging.INFO)
             # check if index name exists and if not create it
             # connect to Redis server
             redis_check = redis.Redis.from_url(os.environ["REDIS_URL"])
@@ -157,14 +171,7 @@ class LoginChecker:
         
     
     def run(self):
-        # ai_names = ["Kevin", "Neo", "Trinity", "JC Denton", "Hiro Protagonist", "Acid Burn", "System Override", "MrMr", "Django", "Superman"]
-        # ai_roles = ["White Hat Hacker", "Cybersecurity Expert", "Black Hat Hacker", "Gray Hat Hacker", "Network Security"]
-
-        # ai_name = random.choice(ai_names)
-        # ai_role = random.choice(ai_roles)
-
-        # print(f"\n Name {ai_name} \n Role {ai_role}\n")
-        llm = ChatOpenAI(temperature=1)
+        llm = ChatOpenAI(temperature=1, streaming=True)
 
         agent = AutoGPT.from_llm_and_tools(
             ai_name="Django",
