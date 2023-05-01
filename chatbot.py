@@ -46,12 +46,14 @@ def add_bg_from_local(image_file):
     )
 
 
-def run_login_checker(http_url, logfile, log_dict):
+def run_login_checker(http_url, logfile, queue):
     lgcheck = LoginChecker(http_url, logfile)
     lgcheck.run()
 
+    log_dict = queue.get()
     log_dict["lfp"] = lgcheck.logging_file_path
     log_dict["ssp"] = lgcheck.summary_file_path
+    queue.put(log_dict)
 
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
@@ -163,13 +165,13 @@ if model == "Login Checker":
                 
 
                 if not st.session_state["process_started"]:
-                    process_mgmt = multiprocessing.Manager()
-                    log_dict = process_mgmt.dict()
+                    queue = multiprocessing.Queue()
+                    queue.put({})
                     process = multiprocessing.Process(
                         target=run_login_checker,
                         args=(
                             input_text,
-                            log_dict
+                            queue
                         ),
                     )
                     process.start()
@@ -178,6 +180,7 @@ if model == "Login Checker":
 
                 process.join()
                 if not process.is_alive():
+                    log_dict = queue.get()
                     log_file_path = log_dict["lfp"]
                     security_summary_path = log_dict["ssp"]
 
