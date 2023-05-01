@@ -51,7 +51,7 @@ def add_bg_from_local(image_file):
 
 
 def run_login_checker(http_url, queue):
-    lgcheck = LoginChecker(http_url, logfile)
+    lgcheck = LoginChecker(http_url)
     lgcheck.run()
 
     log_dict = queue.get()
