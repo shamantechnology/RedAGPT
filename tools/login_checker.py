@@ -23,6 +23,7 @@ from langchain.tools.file_management.write import WriteFileTool
 from langchain.tools.file_management.read import ReadFileTool
 from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities import GoogleSearchAPIWrapper
+from langchain.tools import ShellTool
 
 # from langchain.vectorstores import FAISS
 # import faiss
@@ -70,11 +71,7 @@ class LoginChecker:
                 """
             ),
             PythonREPLTool(),
-            Tool(
-                "bash",
-                BashProcess().run,
-                "useful for when you want to run a command in the bash terminal."
-            ),
+            ShellTool(),
             WriteFileTool(),
             ReadFileTool()
         ]
@@ -100,7 +97,7 @@ class LoginChecker:
             # f"Stay on task with your goals and don't get into a loop",
             # f"Check if log files {info_log} and {error_log} exist and if not, create them",
             f"""
-            In bash run the command 'hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}'. Only use bash. If hydra is not installed, move on to step 2 and don't try to install it
+            With the terminal to run the command 'hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}'. Only use bash. If hydra is not installed, move on to step 2 and don't try to install it
             """,
             f"""
             Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {info_log} and the stderr log {error_log}. If this doesn't work continue on to next step.
