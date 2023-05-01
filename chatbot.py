@@ -158,6 +158,7 @@ if model == "Login Checker":
             with st.spinner(f"Testing website {input_text}. This will take a while."):
 
                 log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+                security_summary_path = f"{os.path.abspath('tools/logs/')}/security_report.txt"
                 if not os.path.exists(os.path.abspath("tools/logs/")):
                     os.makedirs(os.path.abspath("tools/logs/"))
 
@@ -192,6 +193,9 @@ if model == "Login Checker":
                 if not process.is_alive():
                     st.success("Login Checker process has completed.")
                     st.session_state["process_started"] = False
+
+                    with open(security_summary_path, "r") as sectxt:
+                        st.session_state.generated.append(''.join(sectxt.readlines()))
 
                     # Set them back to default so the whole conversation can start all over again
                     st.session_state["show_first_chatbot_msg"] = True
