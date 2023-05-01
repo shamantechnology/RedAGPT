@@ -180,10 +180,11 @@ if model == "Login Checker":
 
                 process.join()
                 if not process.is_alive():
-                    if os.path.exists(log_file_path):
-                        with open(log_file_path, "r") as runtxt:
-                            formatted_readlines = pprint.pformat(runtxt.readlines())
-                            st.info(formatted_readlines)
+                    with st.expander("debug log"):
+                        if os.path.exists(log_file_path):
+                            with open(log_file_path, "r") as runtxt:
+                                formatted_readlines = pprint.pformat(runtxt.readlines())
+                                st.write(formatted_readlines)
                     
                     st.session_state["process_started"] = False
 
