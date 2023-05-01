@@ -168,7 +168,7 @@ models/
 
 # data
 *.db
-data/
+# data/
 tools/bin
 
 # hydra restore files
