@@ -11,6 +11,7 @@ from PIL import Image
 from streamlit_chat import message
 
 from tools.login_checker import LoginChecker
+import pprint
 
 # Change the webpage name and icon
 web_icon_path = os.path.abspath("imgs/web_icon.png")
@@ -177,20 +178,12 @@ if model == "Login Checker":
                     process.join()
                     st.session_state["process_started"] = True
 
-                if os.path.exists(log_file_path):
-                    with open(log_file_path, "r") as runtxt:
-                        if st.session_state["seek_pos"]:
-                            runtxt.seek(st.session_state["seek_pos"])
-
-                        lines = runtxt.readlines()
-                        if len(lines) > 0:
-                            log_response = lines
-                            st.session_state.generated.append(log_response)
-
-                        st.session_state["seek_pos"] = runtxt.tell()
-
                 process.join()
                 if not process.is_alive():
+                    if os.path.exists(log_file_path):
+                        with open(log_file_path, "r") as runtxt:
+                            formatted_readlines = pprint.pformat(runtxt.readlines())
+                            st.info(formatted_readlines)
                     
                     st.session_state["process_started"] = False
 

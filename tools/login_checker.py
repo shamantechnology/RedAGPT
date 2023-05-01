@@ -183,6 +183,8 @@ class LoginChecker:
         agent.chain.verbose = False
 
         try:
-            agent.run(self.goals)
+            resp = agent.run(self.goals)
         except Exception as err:
             print(f"AutoGPT failure {err}")
+
+        self.logging.info(f"AutoGPT Response: {resp}")

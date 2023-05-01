@@ -1,7 +1,7 @@
 # RED Auto-GPT
 ## Security Red Team Auto-GPT tool kit
 
-![Image description](imgs/demo.png)
+![RedAGPT Logo](imgs/web_icon.png)
 
 We are working on creating a tool kit for security professionals that will help test network and other vulnerabilities for home and office using AutoGPT and Langchain
 
@@ -68,3 +68,11 @@ At the end it will give us a security report of vulnerabilities found, if any, a
 * Embed in portable hardware like RespberryPI
 * Further guardrail development
 * Integration into Kali Linux
+
+### Gallery
+
+#### Hackathon Demo Layout
+![Image description](imgs/demo.png)
+
+#### 1st Success
+![1st Success](img/success_final.png)
