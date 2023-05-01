@@ -207,4 +207,5 @@ class LoginChecker:
         except Exception as err:
             print(f"AutoGPT failure {err}")
 
-        self.logging.info(f"AutoGPT Response: {resp}")
+        if resp:
+            self.logging.info(f"AutoGPT Response: {resp}")
