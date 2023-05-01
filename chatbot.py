@@ -46,12 +46,12 @@ def add_bg_from_local(image_file):
     )
 
 
-def run_login_checker(http_url, logfile, log_file_path, security_summary_path):
+def run_login_checker(http_url, logfile, log_dict):
     lgcheck = LoginChecker(http_url, logfile)
     lgcheck.run()
 
-    log_file_path = lgcheck.logging_file_path
-    security_summary_path = lgcheck.summary_file_path
+    log_dict["lfp"] = lgcheck.logging_file_path
+    log_dict["ssp"] = lgcheck.summary_file_path
 
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
@@ -160,16 +160,16 @@ if model == "Login Checker":
         ):
             with st.spinner(f"Testing website {input_text}. This will take a while."):
 
-                log_file_path = None
-                security_summary_path = None
+                
 
                 if not st.session_state["process_started"]:
+                    process_mgmt = multiprocessing.Manager()
+                    log_dict = process_mgmt.dict()
                     process = multiprocessing.Process(
                         target=run_login_checker,
                         args=(
                             input_text,
-                            log_file_path,
-                            security_summary_path
+                            log_dict
                         ),
                     )
                     process.start()
@@ -178,6 +178,9 @@ if model == "Login Checker":
 
                 process.join()
                 if not process.is_alive():
+                    log_file_path = log_dict["lfp"]
+                    security_summary_path = log_dict["ssp"]
+
                     with st.expander("debug log"):
                         if os.path.exists(log_file_path):
                             with open(log_file_path, "r") as runtxt:
