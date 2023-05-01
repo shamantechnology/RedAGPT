@@ -50,7 +50,7 @@ class StreamToLogger:
             self.logger.log(self.log_level, line.rstrip())
 
 class LoginChecker:
-    def __init__(self, http_url, logfile):
+    def __init__(self, http_url):
         # prompt for the agent to use, will be a list
         data_path = os.path.abspath("tools/data/")
         logs_path = os.path.abspath("tools/logs/")
@@ -58,15 +58,25 @@ class LoginChecker:
 
         self.http_url = http_url
 
-        self.logging_file = logfile
+        # setup logging
+        self.logging_file_name = f"lc_runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+        self.logging_file_path =  f"{logs_path}/{self.logging_file_name}"
+        self.summary_file_name = f"lc_security_report{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
+        self.summary_file_path = f"{logs_path}/{self.summary_file_name}"
         
+        if not os.path.exists(logs_path):
+            os.makedirs(logs_path)
+
+        if not os.path.exists(self.logging_file_path):
+            open(self.logging_file_path, "w").close()
+
         try:
             os.remove(self.logging_file)
         except OSError:
             pass
         
         logging.basicConfig(
-            filename=self.logging_file,
+            filename=self.logging_file_path,
             level=logging.INFO,
             format="\n%(message)s\n")
 
@@ -96,13 +106,13 @@ class LoginChecker:
         
         self.embeddings = OpenAIEmbeddings()
 
-        error_log = f"{logs_path}/error{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
-        if not os.path.exists(error_log):
-            open(error_log, 'w').close()
+        self.error_log_path = f"{logs_path}/error{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
+        if not os.path.exists(self.error_log_path):
+            open(self.error_log_path, 'w').close()
 
-        info_log =  f"{logs_path}/info{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
-        if not os.path.exists(info_log):
-            open(info_log, "w").close()
+        self.info_log_path =  f"{logs_path}/info{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
+        if not os.path.exists(self.info_log_path):
+            open(self.info_log_path, "w").close()
 
         urlparts = urlparse(self.http_url)
         hostport = urlparts.netloc.split(":")
@@ -113,23 +123,21 @@ class LoginChecker:
 
         self.goals = [
             f"Stay on task with your goals and don't get into a loop. If you are looping, break the loop and re-exam your goals that you have left",
-            # f"Check if log files {info_log} and {error_log} exist and if not, create them",
+            # f"Check if log files {self.info_log_path} and {self.error_log_path} exist and if not, create them",
             f"""
             Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2. Do not use sudo.
             ```bash 
-            hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password" > {info_log} 2> {error_log}
+            hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password" > {self.info_log_path} 2> {self.error_log_path}
             ```
             """,
             # f"""
-            # If step 1 failed, try this step. If not, continue to step 3. Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {info_log} and the stderr log {error_log}. If this doesn't work continue on to next step.
+            # If step 1 failed, try this step. If not, continue to step 3. Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {self.info_log_path} and the stderr log {self.error_log_path}. If this doesn't work continue on to next step.
             # """,
             f"""
-            If any of the above steps worked, write a summary security report named 
-                security_report_{self.uuid}.txt 
-            and store it at 
-                {logs_path+"/"} 
+            If any of the above steps worked, write a summary security report locally at
+                {self.summary_file_path}
             using the information log 
-                {info_log} 
+                {self.info_log_path} 
             
             Include suggestions, if needed, on what can be done to fix issues.
             
@@ -188,7 +196,7 @@ class LoginChecker:
         
     
     def run(self):
-        llm = ChatOpenAI(temperature=0.5, streaming=True)
+        llm = ChatOpenAI(temperature=0, streaming=True)
 
         agent = AutoGPT.from_llm_and_tools(
             ai_name=self.uuid,
