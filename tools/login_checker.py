@@ -23,7 +23,7 @@ from langchain.tools.file_management.write import WriteFileTool
 from langchain.tools.file_management.read import ReadFileTool
 from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities import GoogleSearchAPIWrapper
-from langchain.tools import ShellTool
+# from langchain.tools import ShellTool
 
 # from langchain.vectorstores import FAISS
 # import faiss
@@ -71,7 +71,7 @@ class LoginChecker:
                 """
             ),
             PythonREPLTool(),
-            ShellTool(),
+            # ShellTool(),
             Tool(
                 "bash",
                 BashProcess().run,
@@ -102,13 +102,14 @@ class LoginChecker:
             # f"Stay on task with your goals and don't get into a loop",
             # f"Check if log files {info_log} and {error_log} exist and if not, create them",
             f"""
-            With the terminal or bash to run the command 'hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}'. Only use bash. If hydra is not installed, move on to step 2 and don't try to install it
+            With the bash tool, run the command below. Only use bash. Don't try to install hydra. If hydra command failed, move on to step 2. 
+            hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form '/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password'" > {info_log} 2> {error_log}
             """,
+            # f"""
+            # If step 1 failed, try this step. If not, continue to step 3. Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {info_log} and the stderr log {error_log}. If this doesn't work continue on to next step.
+            # """,
             f"""
-            Look into using the selenium python library via REPL. Use the "write_file" command. Using the source of {self.http_url}, write a python program using selenium python and its WebDriver API at {data_path} with name login_test.py. The program has to iterate through the username list {data_path + "/username_list_small.txt"} with every password at {data_path + "/password_list_small.txt"} and try to login at {self.http_url}. Store the python program at {data_path}. Use bash symbols > and 2> to stream to the stdout log {info_log} and the stderr log {error_log}. If this doesn't work continue on to next step.
-            """,
-            f"""
-            If any of the above steps worked, write a summary security report named security_report.txt at {logs_path+"/"} using the {info_log} log only. Read and analyze the log using the read_file tool. Use the write_file tool and no other text editor. Include a summery at the end of the report detailing if anything found wrong and how to fix issues. If {info_log} is empty just write "No security issues" in security report. Do not use any other tools except write_file, read_file and grep. If any of the above steps failed, write "No security tools found on machine" in security_report.txt at {logs_path+"/"}
+            If any of the above steps worked, write a summary security report named security_report.txt at {logs_path+"/"} using the information log {info_log}. Include a summery at the end of the report detailing if anything found wrong and how to fix issues. If {info_log} is empty just write "No security issues found with form at {self.http_url}" in security report. Do not use any interactive text editos because you will get stuck. If any of the above steps failed, write "No security tools found on machine" in security_report.txt at {logs_path+"/"}
             """,
             "Congrats, you have completed all the tasks successfully, once the report is created, stop all other tasks"
         ]
@@ -154,18 +155,18 @@ class LoginChecker:
         
     
     def run(self):
-        ai_names = ["Kevin", "Neo", "Trinity", "JC Denton", "Hiro Protagonist", "Acid Burn", "System Override", "MrMr", "Django", "Superman"]
-        ai_roles = ["White Hat Hacker", "Cybersecurity Expert", "Black Hat Hacker", "Gray Hat Hacker", "Network Security"]
+        # ai_names = ["Kevin", "Neo", "Trinity", "JC Denton", "Hiro Protagonist", "Acid Burn", "System Override", "MrMr", "Django", "Superman"]
+        # ai_roles = ["White Hat Hacker", "Cybersecurity Expert", "Black Hat Hacker", "Gray Hat Hacker", "Network Security"]
 
-        ai_name = random.choice(ai_names)
-        ai_role = random.choice(ai_roles)
+        # ai_name = random.choice(ai_names)
+        # ai_role = random.choice(ai_roles)
 
-        print(f"\n Name {ai_name} \n Role {ai_role}\n")
+        # print(f"\n Name {ai_name} \n Role {ai_role}\n")
         llm = ChatOpenAI(temperature=1)
 
         agent = AutoGPT.from_llm_and_tools(
-            ai_name=ai_name,
-            ai_role=ai_role,
+            ai_name="Django",
+            ai_role="IT Admin",
             tools=self.tools,
             llm=llm,
             memory=self.vectorstore.as_retriever()
