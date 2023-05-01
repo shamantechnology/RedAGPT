@@ -61,7 +61,7 @@ class LoginChecker:
         self.http_url = http_url
 
         # setup logging
-        self.logging_file_name = f"lc_runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
+        self.logging_file_name = f"lc_runlog{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
         self.logging_file_path =  f"{logs_path}/{self.logging_file_name}"
         self.summary_file_name = f"lc_security_report{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
         self.summary_file_path = f"{logs_path}/{self.summary_file_name}"
@@ -101,11 +101,11 @@ class LoginChecker:
         
         self.embeddings = OpenAIEmbeddings()
 
-        self.error_log_path = f"{logs_path}/error{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
+        self.error_log_path = f"{logs_path}/lc_error{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
         if not os.path.exists(self.error_log_path):
             open(self.error_log_path, 'w').close()
 
-        self.info_log_path =  f"{logs_path}/info{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
+        self.info_log_path =  f"{logs_path}/lc_info{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
         if not os.path.exists(self.info_log_path):
             open(self.info_log_path, "w").close()
 
