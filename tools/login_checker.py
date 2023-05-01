@@ -134,7 +134,7 @@ class LoginChecker:
             # check if index name exists and if not create it
             # connect to Redis server
             redis_check = redis.Redis.from_url(os.environ["REDIS_URL"])
-            redis_idx_name = f'{os.environ["REDIS_INDEX_NAME"]}_{self.pid}'
+            redis_idx_name = f'{os.environ["REDIS_INDEX_NAME"]}'
 
             # check if the index exists
             if len(redis_check.keys(

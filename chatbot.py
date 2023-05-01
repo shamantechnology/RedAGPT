@@ -195,7 +195,7 @@ if model == "Login Checker":
                     st.session_state["process_started"] = False
 
                     with open(security_summary_path, "r") as sectxt:
-                        st.session_state.generated.append(''.join(sectxt.readlines()))
+                        st.success(''.join(sectxt.readlines()))
 
                     # Set them back to default so the whole conversation can start all over again
                     st.session_state["show_first_chatbot_msg"] = True
