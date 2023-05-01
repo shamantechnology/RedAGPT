@@ -36,22 +36,13 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.experimental import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
-class StreamToLogger:
-    """
-    Fake file-like stream object that redirects writes to a logger instance.
-    """
-    def __init__(self, logger, log_level=logging.INFO):
-        self.logger = logger
-        self.log_level = log_level
-        self.linebuf = ''
-
-    def write(self, buf):
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.log_level, line.rstrip())
+from stream_to_logger import StreamToLogger
 
 class LoginChecker:
     def __init__(self, http_url):
         self.uuid = str(uuid.uuid4()).replace('-', '')
+
+        self.autogpt_resp = ":)"
 
         # prompt for the agent to use, will be a list
         data_path = os.path.abspath("tools/data/")
@@ -117,7 +108,8 @@ class LoginChecker:
             hydra_host = f"{hostport[0]}"
 
         self.goals = [
-            f"Stay on task with your goals and don't get into a loop. If you are looping, break the loop and re-exam your goals that you have left",
+            # f"Stay on task with your goals and don't get into a loop. If you are looping, break the loop and re-exam your goals that you have left",
+            f"Check if {self.http_url} is a valid url to a login form before moving to step 2. If not, finish and reply to user \"Not a valid form URL. Please provide a actual form URL\""
             # f"Check if log files {self.info_log_path} and {self.error_log_path} exist and if not, create them",
             f"""
             Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2. Do not use sudo.
@@ -203,9 +195,9 @@ class LoginChecker:
         agent.chain.verbose = False
 
         try:
-            resp = agent.run(self.goals)
+            self.autogpt_resp = agent.run(self.goals)
         except Exception as err:
             print(f"AutoGPT failure {err}")
 
-        if resp:
-            self.logging.info(f"AutoGPT Response: {resp}")
+        if self.autogpt_resp:
+            self.logging.info(f"AutoGPT Response: {self.autogpt_resp}")

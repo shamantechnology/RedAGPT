@@ -49,16 +49,6 @@ def add_bg_from_local(image_file):
         unsafe_allow_html=True,
     )
 
-
-def run_login_checker(http_url, queue):
-    lgcheck = LoginChecker(http_url)
-    lgcheck.run()
-
-    log_dict = queue.get()
-    log_dict["lfp"] = lgcheck.logging_file_path
-    log_dict["ssp"] = lgcheck.summary_file_path
-    queue.put(log_dict)
-
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
 add_bg_from_local(bg_img_path)
@@ -165,43 +155,34 @@ if model == "Login Checker":
             # and not st.session_state["url_checked"]
         ):
             with st.spinner(f"Testing website {input_text}. This will take a while."):
-
-                
-
                 if not st.session_state["process_started"]:
-                    queue = multiprocessing.Queue()
-                    queue.put({})
+                    lgcheck = LoginChecker(input_text)
                     process = multiprocessing.Process(
-                        target=run_login_checker,
-                        args=(
-                            input_text,
-                            queue
-                        ),
+                        target=lgcheck.run()
                     )
+
                     process.start()
                     process.join()
                     st.session_state["process_started"] = True
 
                 process.join()
                 if not process.is_alive():
-                    log_after_dict = queue.get()
-                    log_file_path = log_after_dict["lfp"]
-                    security_summary_path = log_after_dict["ssp"]
-
                     with st.expander("debug log"):
-                        if os.path.exists(log_file_path):
-                            with open(log_file_path, "r") as runtxt:
+                        if os.path.exists(lgcheck.logging_file_path):
+                            with open(lgcheck.logging_file_path, "r") as runtxt:
                                 formatted_readlines = pprint.pformat(runtxt.readlines())
                                 st.write(formatted_readlines)
                     
                     st.session_state["process_started"] = False
 
-                    if os.path.exists(security_summary_path):
+                    if os.path.exists(lgcheck.summary_file_path):
                         st.success("Login Checker process has completed.")
-                        with open(security_summary_path, "r") as sectxt:
+                        with open(lgcheck.summary_file_path, "r") as sectxt:
                             st.success(''.join(sectxt.readlines()))
+                            st.success(lgcheck.autogpt_resp)
                     else:
                         st.error("Login Check failed. No report found.")
+                        st.error(lgcheck.autogpt_resp)
 
                     # Set them back to default so the whole conversation can start all over again
                     st.session_state["show_first_chatbot_msg"] = True
