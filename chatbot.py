@@ -50,7 +50,7 @@ def add_bg_from_local(image_file):
     )
 
 
-def run_login_checker(http_url, logfile, queue):
+def run_login_checker(http_url, queue):
     lgcheck = LoginChecker(http_url, logfile)
     lgcheck.run()
 
