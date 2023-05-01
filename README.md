@@ -87,5 +87,5 @@ streamlit run chatbot.py | tail -n +6 > tools/logs/logtest04292023.txt
 
 ### 1st Success
 <p align="center" >
-    <img src="img/success_final.png" alt="RedAGPT Logo" align="center">
+    <img src="imgs/success_final.png" alt="RedAGPT Logo" align="center">
 </p>
