@@ -1,6 +1,0 @@
-Security Report of http://184.73.89.168:8000/admin/login/
-	- Hyrda command successfully carried out.
-	- No valid password found.
-	- No security issues in the authentication form.
-
-Conclusion: Task successfully completed
