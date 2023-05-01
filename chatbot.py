@@ -153,7 +153,7 @@ if model == "Login Checker":
 
         if (
             st.session_state["allow_url_to_be_checked"]
-            and not st.session_state["url_checked"]
+            # and not st.session_state["url_checked"]
         ):
             with st.spinner(f"Testing website {input_text}. This will take a while."):
 
@@ -177,26 +177,40 @@ if model == "Login Checker":
                     st.session_state["process_started"] = True
 
                 if os.path.exists(log_file_path):
-                    with open(log_file_path, "r") as runtxt:
-                        if st.session_state["seek_pos"]:
-                            runtxt.seek(st.session_state["seek_pos"])
+                    while process.is_alive():
+                        with open(log_file_path, "r") as runtxt:
+                            if st.session_state["seek_pos"]:
+                                runtxt.seek(st.session_state["seek_pos"])
 
-                        lines = runtxt.readlines()
-                        if len(lines) > 0:
-                            log_response = lines
-                            st.session_state.past.append(model)
-                            st.session_state.generated.append(log_response)
+                            log_lines = runtxt.readlines()
+                            if len(log_lines) > 0:
+                                log_response = ''.join(log_lines).replace('\n', '')
+                                st.session_state.generated.append(log_response)
 
-                        st.session_state["seek_pos"] = runtxt.tell()
+                            st.session_state["seek_pos"] = runtxt.tell()
 
-                process.join()
+                        process.join()
+                        if process.exitcode is not None:
+                            break
+
                 if not process.is_alive():
                     st.success("Login Checker process has completed.")
                     st.session_state["process_started"] = False
+
+                    # Set them back to default so the whole conversation can start all over again
+                    st.session_state["show_first_chatbot_msg"] = True
+                    st.session_state["generated"].append("Local OR Remote")
+
+                    st.session_state["set_local_or_remote"] = False
+
+                    st.session_state["show_url_msg_once"] = True
+                    st.session_state["allow_url_to_be_checked"] = False
+                    st.session_state["showed_url_msg_once"] = False
+                    st.session_state["edited_url_msg"] = False
                 else:
                     st.experimental_rerun()
 
-                st.session_state["url_checked"] = True
+                # st.session_state["url_checked"] = True
 
 
 # Show the "GIVE URL" msg in the chatbot
@@ -213,7 +227,7 @@ if (
 
 # Show the first msg in the chatbot
 if st.session_state["show_first_chatbot_msg"]:
-    message(st.session_state["generated"], key=str(0))
+    message(st.session_state["generated"], key=str(len(st.session_state["generated"]) - 1))
     st.session_state["show_first_chatbot_msg"] = False
 
 
