@@ -51,6 +51,8 @@ class StreamToLogger:
 
 class LoginChecker:
     def __init__(self, http_url):
+        self.uuid = str(uuid.uuid4()).replace('-', '')
+
         # prompt for the agent to use, will be a list
         data_path = os.path.abspath("tools/data/")
         logs_path = os.path.abspath("tools/logs/")
@@ -81,8 +83,6 @@ class LoginChecker:
             format="\n%(message)s\n")
 
         self.logging = logging.getLogger(__name__)
-
-        self.uuid = str(uuid.uuid4()).replace('-', '')
         
         self.tools = [
             Tool(
