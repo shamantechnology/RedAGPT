@@ -1,6 +1,7 @@
 import base64
 import multiprocessing
 import os
+import pprint
 from datetime import datetime
 
 import openai
@@ -11,7 +12,6 @@ from PIL import Image
 from streamlit_chat import message
 
 from tools.login_checker import LoginChecker
-import pprint
 
 # Change the webpage name and icon
 web_icon_path = os.path.abspath("imgs/web_icon.png")
@@ -28,10 +28,8 @@ audio_file = open(audio_path, "rb")
 audio_bytes = audio_file.read()
 st.sidebar.audio(audio_bytes, format="audio/mp3", start_time=0)
 
-log_dict = {
-    "lfp": None,
-    "ssp": None
-}
+log_dict = {"lfp": None, "ssp": None}
+
 
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as f:
@@ -59,6 +57,7 @@ def run_login_checker(http_url, queue):
     log_dict["ssp"] = lgcheck.summary_file_path
     queue.put(log_dict)
 
+
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
 add_bg_from_local(bg_img_path)
@@ -76,21 +75,21 @@ if "set_local_or_remote" not in st.session_state:
     st.session_state["set_local_or_remote"] = False
 if "user_local_remote" not in st.session_state:
     st.session_state["user_local_remote"] = None
+if "edited_local_or_remote_msg_once" not in st.session_state:
+    st.session_state["edited_local_or_remote_msg_once"] = False
 
 if "show_url_msg_once" not in st.session_state:
-    st.session_state["show_url_msg_once"] = True
+    st.session_state["show_url_msg_once"] = False
 if "showed_url_msg_once" not in st.session_state:
     st.session_state["showed_url_msg_once"] = False
-if "save_url_msg" not in st.session_state:
-    st.session_state["save_url_msg"] = None
 if "edited_url_msg" not in st.session_state:
     st.session_state["edited_url_msg"] = False
 
-# First msgs in the bot
-if "generated" not in st.session_state:
-    st.session_state["generated"] = ["Local OR Remote"]
-if "past" not in st.session_state:
-    st.session_state["past"] = [""]
+# Initialize first msgs in the bot
+if "bot_msgs" not in st.session_state:
+    st.session_state["bot_msgs"] = ["Local OR Remote"]
+if "user_msgs" not in st.session_state:
+    st.session_state["user_msgs"] = []
 
 if "allow_url_to_be_checked" not in st.session_state:
     st.session_state["allow_url_to_be_checked"] = False
@@ -115,34 +114,42 @@ if model == "Login Checker":
     input_text = st.text_input(
         "", placeholder=placeholder, key="input_text", label_visibility="hidden"
     )
-    st.session_state["past"].append(input_text)
+    if len(input_text) != 0:
+        st.session_state["user_msgs"].append(input_text)
 
-    if not st.session_state["set_local_or_remote"]:
+    if not st.session_state["set_local_or_remote"]:  # Local or Remote
 
         if input_text == "Local" or input_text == "Remote":
             st.session_state["user_local_remote"] = input_text  # save the user's input
             st.session_state["set_local_or_remote"] = True
             st.experimental_rerun()  # Rerun the script so the "Enter URL here" can be shown in the box
         else:
-            if not st.session_state[
-                "show_first_chatbot_msg"
-            ]:  # show this msg in the bot only if it's not the first msg of the bot
-                st.session_state["generated"].append("Local OR Remote")
+            # show this msg in the bot only if it's not the first msg of the bot
+            if not st.session_state["show_first_chatbot_msg"]:
+                if not st.session_state["edited_local_or_remote_msg_once"]:
+                    st.session_state["bot_msgs"][
+                        -1
+                    ] = "THE GIVEN INPUT IS INVALID.\nGIVE Local OR Remote"
+                    st.session_state["edited_local_or_remote_msg_once"] = True
+                else:
+                    st.session_state["bot_msgs"].append(
+                        "THE GIVEN INPUT IS INVALID.\nGIVE Local OR Remote"
+                    )
 
-    if st.session_state["set_local_or_remote"]:
+    else:  # Local or Remote has been set, now URL time
 
         # The bot should ask the user to give a url or ip based on their previous option
-        if st.session_state["show_url_msg_once"]:
+        if not st.session_state["show_url_msg_once"]:
             if st.session_state["user_local_remote"] == "Local":
                 msg = "GIVE URL"
             else:  # Remote
                 msg = "REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN"
 
-            st.session_state["save_url_msg"] = msg
-            st.session_state["show_url_msg_once"] = False
+            st.session_state["bot_msgs"].append(msg)
+            st.session_state["show_url_msg_once"] = True
             st.experimental_rerun()  # Rerun script to show the url msg in the bot
 
-        if not st.session_state["allow_url_to_be_checked"] and len(input_text) != 0:
+        if not st.session_state["allow_url_to_be_checked"]:
             if validators.url(input_text):
                 st.session_state["allow_url_to_be_checked"] = True
             else:
@@ -155,10 +162,10 @@ if model == "Login Checker":
                     st.session_state["showed_url_msg_once"]
                     and not st.session_state["edited_url_msg"]
                 ):
-                    st.session_state["generated"][-1] = "THE GIVEN URL IS INVALID"
+                    st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID!"
                     st.session_state["edited_url_msg"] = True
-                else:
-                    st.session_state["generated"].append("THE GIVEN URL IS INVALID")
+                if st.session_state["edited_url_msg"]:
+                    st.session_state["bot_msgs"].append("THE GIVEN URL IS INVALID.")
 
         if (
             st.session_state["allow_url_to_be_checked"]
@@ -166,17 +173,12 @@ if model == "Login Checker":
         ):
             with st.spinner(f"Testing website {input_text}. This will take a while."):
 
-                
-
                 if not st.session_state["process_started"]:
                     queue = multiprocessing.Queue()
                     queue.put({})
                     process = multiprocessing.Process(
                         target=run_login_checker,
-                        args=(
-                            input_text,
-                            queue
-                        ),
+                        args=(input_text, queue),
                     )
                     process.start()
                     process.join()
@@ -193,61 +195,89 @@ if model == "Login Checker":
                             with open(log_file_path, "r") as runtxt:
                                 formatted_readlines = pprint.pformat(runtxt.readlines())
                                 st.write(formatted_readlines)
-                    
+
                     st.session_state["process_started"] = False
 
                     if os.path.exists(security_summary_path):
                         st.success("Login Checker process has completed.")
                         with open(security_summary_path, "r") as sectxt:
-                            st.success(''.join(sectxt.readlines()))
+                            st.success("".join(sectxt.readlines()))
                     else:
                         st.error("Login Check failed. No report found.")
 
-                    # Set them back to default so the whole conversation can start all over again
-                    st.session_state["show_first_chatbot_msg"] = True
-                    st.session_state["generated"].append("Local OR Remote")
+                #     # Set them back to default so the whole conversation can start all over again
+                #     st.session_state["show_first_chatbot_msg"] = True
+                #     st.session_state["bot_msgs"].append("Local OR Remote")
 
-                    st.session_state["set_local_or_remote"] = False
+                #     st.session_state["set_local_or_remote"] = False
 
-                    st.session_state["show_url_msg_once"] = True
-                    st.session_state["allow_url_to_be_checked"] = False
-                    st.session_state["showed_url_msg_once"] = False
-                    st.session_state["edited_url_msg"] = False
-                else:
-                    st.experimental_rerun()
+                #     st.session_state["show_url_msg_once"] = True
+                #     st.session_state["allow_url_to_be_checked"] = False
+                #     st.session_state["showed_url_msg_once"] = False
+                #     st.session_state["edited_url_msg"] = False
+                # else:
+                #     st.experimental_rerun()
 
                 # st.session_state["url_checked"] = True
 
 
 # Show the "GIVE URL" msg in the chatbot
 if (
-    not st.session_state["show_url_msg_once"]
+    st.session_state["show_url_msg_once"]
     and not st.session_state["showed_url_msg_once"]
 ):
-    st.session_state["generated"].append(st.session_state["save_url_msg"])
     message(
-        st.session_state["save_url_msg"],
-        key=str(len(st.session_state["generated"]) - 1),
+        st.session_state["bot_msgs"][-1],
+        key=str(len(st.session_state["bot_msgs"]) - 1),
     )
     st.session_state["showed_url_msg_once"] = True
 
 # Show the first msg in the chatbot
 if st.session_state["show_first_chatbot_msg"]:
-    message(st.session_state["generated"], key=str(len(st.session_state["generated"]) - 1))
+    message(
+        st.session_state["bot_msgs"], key=str(len(st.session_state["bot_msgs"]) - 1)
+    )
     st.session_state["show_first_chatbot_msg"] = False
 
 
-# Show all the msgs in the bot from the start
-# if the two lists do not match in size, then won't be shown
-filtered_past = [
-    (i, msg) for i, msg in enumerate(st.session_state["past"]) if len(msg) != 0
-]
-filtered_generated = [
-    (i, msg) for i, msg in enumerate(st.session_state["generated"]) if len(msg) != 0
-]
+# Show all msgs after the first msg is already shown
+if not st.session_state["show_first_chatbot_msg"]:
+    # Filter out any empty entry from the user
+    filtered_user_msgs1 = [
+        (i, msg) for i, msg in enumerate(st.session_state["user_msgs"]) if len(msg) != 0
+    ]
+    filtered_bot_msgs1 = [
+        (i, msg) for i, msg in enumerate(st.session_state["bot_msgs"]) if len(msg) != 0
+    ]
 
-for (past_i, past_msg), (generated_i, generated_msg) in reversed(
-    list(zip(filtered_past, filtered_generated))
-):
-    message(past_msg, is_user=True, key=str(past_i) + "_user")
-    message(generated_msg, key=str(generated_i))
+    # If the two lists do not have the same
+    # Decrease the size of the longer list by one
+    # so they can match
+    filtered_user_msgs2 = filtered_user_msgs1
+    filtered_bot_msgs2 = filtered_bot_msgs1
+    if len(filtered_user_msgs1) > len(filtered_bot_msgs1):
+        filtered_user_msgs2 = filtered_user_msgs1[:-1]
+    elif len(filtered_user_msgs1) < len(filtered_bot_msgs1):
+        filtered_bot_msgs2 = filtered_bot_msgs1[:-1]
+
+    # Match the elements
+    for (user_i, user_msg), (bot_i, bot_msg) in reversed(
+        list(zip(filtered_user_msgs2, filtered_bot_msgs2))
+    ):
+        message(user_msg, is_user=True, key=str(user_i) + "_user")
+        message(bot_msg, key=str(bot_i))
+
+    # If two lists did not have the same size
+    # just show the last element that was filtered above
+    if len(filtered_user_msgs2) > len(filtered_bot_msgs2):
+        message(
+            filtered_user_msgs2[len(filtered_user_msgs2) - 1],
+            is_user=True,
+            key=str(len(filtered_user_msgs2) - 1) + "_user",
+        )
+
+    elif len(filtered_user_msgs2) < len(filtered_bot_msgs2):
+        message(
+            filtered_bot_msgs2[len(filtered_bot_msgs2) - 1],
+            key=str(len(filtered_bot_msgs2) - 1),
+        )
