@@ -71,11 +71,6 @@ class LoginChecker:
 
         if not os.path.exists(self.logging_file_path):
             open(self.logging_file_path, "w").close()
-
-        try:
-            os.remove(self.logging_file)
-        except OSError:
-            pass
         
         logging.basicConfig(
             filename=self.logging_file_path,
