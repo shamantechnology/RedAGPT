@@ -177,22 +177,18 @@ if model == "Login Checker":
                     st.session_state["process_started"] = True
 
                 if os.path.exists(log_file_path):
-                    while process.is_alive():
-                        with open(log_file_path, "r") as runtxt:
-                            if st.session_state["seek_pos"]:
-                                runtxt.seek(st.session_state["seek_pos"])
+                    with open(log_file_path, "r") as runtxt:
+                        if st.session_state["seek_pos"]:
+                            runtxt.seek(st.session_state["seek_pos"])
 
-                            log_lines = runtxt.readlines()
-                            if len(log_lines) > 0:
-                                log_response = ''.join(log_lines).replace('\n', '')
-                                st.session_state.generated.append(log_response)
+                        lines = runtxt.readlines()
+                        if len(lines) > 0:
+                            log_response = lines
+                            st.session_state.generated.append(log_response)
 
-                            st.session_state["seek_pos"] = runtxt.tell()
+                        st.session_state["seek_pos"] = runtxt.tell()
 
-                        process.join()
-                        if process.exitcode is not None:
-                            break
-
+                process.join()
                 if not process.is_alive():
                     st.success("Login Checker process has completed.")
                     st.session_state["process_started"] = False
