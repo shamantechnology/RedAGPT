@@ -82,8 +82,10 @@ if "show_url_msg_once" not in st.session_state:
     st.session_state["show_url_msg_once"] = False
 if "showed_url_msg_once" not in st.session_state:
     st.session_state["showed_url_msg_once"] = False
-if "edited_url_msg" not in st.session_state:
-    st.session_state["edited_url_msg"] = False
+if "showed_url_msg_once_checked" not in st.session_state:
+    st.session_state["showed_url_msg_once_checked"] = False
+if "save_url_msg" not in st.session_state:
+    st.session_state["save_url_msg"] = None
 
 # Initialize first msgs in the bot
 if "bot_msgs" not in st.session_state:
@@ -114,8 +116,7 @@ if model == "Login Checker":
     input_text = st.text_input(
         "", placeholder=placeholder, key="input_text", label_visibility="hidden"
     )
-    if len(input_text) != 0:
-        st.session_state["user_msgs"].append(input_text)
+    st.session_state["user_msgs"].append(input_text)
 
     if not st.session_state["set_local_or_remote"]:  # Local or Remote
 
@@ -145,7 +146,11 @@ if model == "Login Checker":
             else:  # Remote
                 msg = "REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN"
 
-            st.session_state["bot_msgs"].append(msg)
+            # Streamlit gets confused here, so I assign the msg to a session
+            # instead of doing len(st.session_state["bot_msgs"][-1])
+            # where I show it on the bottom of the script
+            st.session_state["save_url_msg"] = msg
+
             st.session_state["show_url_msg_once"] = True
             st.experimental_rerun()  # Rerun script to show the url msg in the bot
 
@@ -160,11 +165,11 @@ if model == "Login Checker":
                 # thus, the needed change but it only need to be done once
                 if (
                     st.session_state["showed_url_msg_once"]
-                    and not st.session_state["edited_url_msg"]
+                    and not st.session_state["showed_url_msg_once_checked"]
                 ):
                     st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID!"
-                    st.session_state["edited_url_msg"] = True
-                if st.session_state["edited_url_msg"]:
+                    st.session_state["showed_url_msg_once_checked"] = True
+                else:
                     st.session_state["bot_msgs"].append("THE GIVEN URL IS INVALID.")
 
         if (
@@ -214,23 +219,11 @@ if model == "Login Checker":
                 #     st.session_state["show_url_msg_once"] = True
                 #     st.session_state["allow_url_to_be_checked"] = False
                 #     st.session_state["showed_url_msg_once"] = False
-                #     st.session_state["edited_url_msg"] = False
                 # else:
                 #     st.experimental_rerun()
 
                 # st.session_state["url_checked"] = True
 
-
-# Show the "GIVE URL" msg in the chatbot
-if (
-    st.session_state["show_url_msg_once"]
-    and not st.session_state["showed_url_msg_once"]
-):
-    message(
-        st.session_state["bot_msgs"][-1],
-        key=str(len(st.session_state["bot_msgs"]) - 1),
-    )
-    st.session_state["showed_url_msg_once"] = True
 
 # Show the first msg in the chatbot
 if st.session_state["show_first_chatbot_msg"]:
@@ -239,45 +232,74 @@ if st.session_state["show_first_chatbot_msg"]:
     )
     st.session_state["show_first_chatbot_msg"] = False
 
+else:  # all other times
 
-# Show all msgs after the first msg is already shown
-if not st.session_state["show_first_chatbot_msg"]:
-    # Filter out any empty entry from the user
-    filtered_user_msgs1 = [
-        (i, msg) for i, msg in enumerate(st.session_state["user_msgs"]) if len(msg) != 0
-    ]
-    filtered_bot_msgs1 = [
-        (i, msg) for i, msg in enumerate(st.session_state["bot_msgs"]) if len(msg) != 0
-    ]
-
-    # If the two lists do not have the same
-    # Decrease the size of the longer list by one
-    # so they can match
-    filtered_user_msgs2 = filtered_user_msgs1
-    filtered_bot_msgs2 = filtered_bot_msgs1
-    if len(filtered_user_msgs1) > len(filtered_bot_msgs1):
-        filtered_user_msgs2 = filtered_user_msgs1[:-1]
-    elif len(filtered_user_msgs1) < len(filtered_bot_msgs1):
-        filtered_bot_msgs2 = filtered_bot_msgs1[:-1]
-
-    # Match the elements
-    for (user_i, user_msg), (bot_i, bot_msg) in reversed(
-        list(zip(filtered_user_msgs2, filtered_bot_msgs2))
+    # Show the "GIVE URL" msg in the chatbot
+    if (
+        st.session_state["show_url_msg_once"]
+        and not st.session_state["showed_url_msg_once"]
     ):
-        message(user_msg, is_user=True, key=str(user_i) + "_user")
-        message(bot_msg, key=str(bot_i))
-
-    # If two lists did not have the same size
-    # just show the last element that was filtered above
-    if len(filtered_user_msgs2) > len(filtered_bot_msgs2):
+        st.session_state["bot_msgs"].append(st.session_state["save_url_msg"])
         message(
-            filtered_user_msgs2[len(filtered_user_msgs2) - 1],
-            is_user=True,
-            key=str(len(filtered_user_msgs2) - 1) + "_user",
+            st.session_state["save_url_msg"],
+            key=str(len(st.session_state["bot_msgs"])),
         )
+        st.session_state["showed_url_msg_once"] = True
 
-    elif len(filtered_user_msgs2) < len(filtered_bot_msgs2):
-        message(
-            filtered_bot_msgs2[len(filtered_bot_msgs2) - 1],
-            key=str(len(filtered_bot_msgs2) - 1),
-        )
+    else:
+        # Show all msgs after the first msg is already shown
+        # Filter out any empty entry from the user
+        filtered_user_msgs1 = [
+            (i, msg)
+            for i, msg in enumerate(st.session_state["user_msgs"])
+            if len(msg) != 0
+        ]
+        filtered_bot_msgs1 = [
+            (i, msg)
+            for i, msg in enumerate(st.session_state["bot_msgs"])
+            if len(msg) != 0
+        ]
+
+        # If the two lists do not have the same
+        # Decrease the size of the longer list by one
+        # so they can match
+        filtered_user_msgs2 = filtered_user_msgs1
+        filtered_bot_msgs2 = filtered_bot_msgs1
+        if len(filtered_user_msgs1) > len(filtered_bot_msgs1):
+            filtered_user_msgs2 = filtered_user_msgs1[:-1]
+        elif len(filtered_user_msgs1) < len(filtered_bot_msgs1):
+            filtered_bot_msgs2 = filtered_bot_msgs1[:-1]
+
+        # Initialize the flag
+        executed_once = False
+
+        # Match the elements
+        for (user_i, user_msg), (bot_i, bot_msg) in reversed(
+            list(zip(filtered_user_msgs2, filtered_bot_msgs2))
+        ):
+            if not executed_once and (
+                len(filtered_user_msgs2) != len(filtered_bot_msgs2)
+            ):
+                # Show the last element that was filtered above
+                if len(filtered_user_msgs2) > len(filtered_bot_msgs2):
+                    message(
+                        filtered_user_msgs2[user_i + 1][
+                            1
+                        ],  # Extract message text from the tuple
+                        is_user=True,
+                        key=str(user_i + 1) + "_user",
+                    )
+                elif len(filtered_user_msgs2) < len(filtered_bot_msgs2):
+                    message(
+                        filtered_bot_msgs2[bot_i + 1][
+                            1
+                        ],  # Extract message text from the tuple
+                        key=str(bot_i + 1),
+                    )
+
+                # Update the flag
+                executed_once = True
+
+            # Print the matched elements
+            message(user_msg, is_user=True, key=str(user_i) + "_user")
+            message(bot_msg, key=str(bot_i))
