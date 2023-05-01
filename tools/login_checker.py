@@ -36,7 +36,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.experimental import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
-from stream_to_logger import StreamToLogger
+from tools.stream_to_logger import StreamToLogger
 
 class LoginChecker:
     def __init__(self, http_url):
