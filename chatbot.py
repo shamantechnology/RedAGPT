@@ -191,11 +191,15 @@ if model == "Login Checker":
 
                 process.join()
                 if not process.is_alive():
-                    st.success("Login Checker process has completed.")
+                    
                     st.session_state["process_started"] = False
 
-                    with open(security_summary_path, "r") as sectxt:
-                        st.success(''.join(sectxt.readlines()))
+                    if os.path.exists(security_summary_path):
+                        st.success("Login Checker process has completed.")
+                        with open(security_summary_path, "r") as sectxt:
+                            st.success(''.join(sectxt.readlines()))
+                    else:
+                        st.error("Login Check failed. No report found.")
 
                     # Set them back to default so the whole conversation can start all over again
                     st.session_state["show_first_chatbot_msg"] = True
