@@ -37,11 +37,13 @@ def is_gov_url(url):
     # Look up domain registration information using whois
     domain_info = whois.whois(domain_name)
 
-    # Check if the domain belongs to a government entity
-    if 'government' in domain_info.name.lower() or 'gov' in domain_info.name.lower():
-        return True
-    else:
-        return False
+    if domain_info:
+        # Check if the domain belongs to a government entity
+        if 'government' in domain_info.name.lower() or 'gov' in domain_info.name.lower():
+            return True
+        
+    return False
+    
     
 def is_gov_or_corp_website(url):
     # Check if the URL belongs to a government or corporate website
