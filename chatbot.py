@@ -38,9 +38,12 @@ def is_gov_url(url):
     domain_info = whois.whois(domain_name)
 
     if domain_info:
-        # Check if the domain belongs to a government entity
-        if 'government' in domain_info.name.lower() or 'gov' in domain_info.name.lower():
-            return True
+        try:
+            # Check if the domain belongs to a government entity
+            if 'government' in domain_info.name.lower() or 'gov' in domain_info.name.lower():
+                return True
+        except Exception:
+            pass
         
     return False
     
