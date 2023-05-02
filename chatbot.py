@@ -1,6 +1,7 @@
 import base64
 import multiprocessing
 import os
+import pprint
 from datetime import datetime
 
 import openai
@@ -11,7 +12,6 @@ from PIL import Image
 from streamlit_chat import message
 
 from tools.login_checker import LoginChecker
-import pprint
 
 # Change the webpage name and icon
 web_icon_path = os.path.abspath("imgs/web_icon.png")
@@ -28,10 +28,8 @@ audio_file = open(audio_path, "rb")
 audio_bytes = audio_file.read()
 st.sidebar.audio(audio_bytes, format="audio/mp3", start_time=0)
 
-log_dict = {
-    "lfp": None,
-    "ssp": None
-}
+log_dict = {"lfp": None, "ssp": None}
+
 
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as f:
@@ -48,6 +46,7 @@ def add_bg_from_local(image_file):
         """,
         unsafe_allow_html=True,
     )
+
 
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
@@ -66,31 +65,40 @@ if "set_local_or_remote" not in st.session_state:
     st.session_state["set_local_or_remote"] = False
 if "user_local_remote" not in st.session_state:
     st.session_state["user_local_remote"] = None
+if "edited_local_or_remote_msg_once" not in st.session_state:
+    st.session_state["edited_local_or_remote_msg_once"] = False
 
 if "show_url_msg_once" not in st.session_state:
-    st.session_state["show_url_msg_once"] = True
+    st.session_state["show_url_msg_once"] = False
 if "showed_url_msg_once" not in st.session_state:
     st.session_state["showed_url_msg_once"] = False
+if "showed_url_msg_once_checked" not in st.session_state:
+    st.session_state["showed_url_msg_once_checked"] = False
 if "save_url_msg" not in st.session_state:
     st.session_state["save_url_msg"] = None
-if "edited_url_msg" not in st.session_state:
-    st.session_state["edited_url_msg"] = False
 
-# First msgs in the bot
-if "generated" not in st.session_state:
-    st.session_state["generated"] = ["Local OR Remote"]
-if "past" not in st.session_state:
-    st.session_state["past"] = [""]
+# Initialize first msgs in the bot
+if "bot_msgs" not in st.session_state:
+    st.session_state["bot_msgs"] = ["Local OR Remote"]
+if "user_msgs" not in st.session_state:
+    st.session_state["user_msgs"] = []
 
 if "allow_url_to_be_checked" not in st.session_state:
     st.session_state["allow_url_to_be_checked"] = False
-if "url_checked" not in st.session_state:
-    st.session_state["url_checked"] = False
 
 if "seek_pos" not in st.session_state:
     st.session_state["seek_pos"] = None
 if "process_started" not in st.session_state:
     st.session_state["process_started"] = False
+
+# Set up the event flag for disabling the user input box
+if "disable_input" not in st.session_state:
+    st.session_state["disable_input"] = False
+
+if "security_summary_success" not in st.session_state:
+    st.session_state["security_summary_success"] = []
+if "security_summary_failure" not in st.session_state:
+    st.session_state["security_summary_failure"] = []
 
 
 tools = ["Login Checker"]
@@ -102,63 +110,85 @@ if model == "Login Checker":
     else:
         placeholder = "Enter URL here"
 
-    input_text = st.text_input(
-        "", placeholder=placeholder, key="input_text", label_visibility="hidden"
-    )
-    st.session_state["past"].append(input_text)
+    if not st.session_state["disable_input"]:
+        input_text = st.text_input(
+            "", placeholder=placeholder, key="input_text", label_visibility="hidden"
+        )
+        st.session_state["user_msgs"].append(input_text)
 
-    if not st.session_state["set_local_or_remote"]:
+        if not st.session_state["set_local_or_remote"]:  # Local or Remote
 
-        if input_text == "Local" or input_text == "Remote":
-            st.session_state["user_local_remote"] = input_text  # save the user's input
-            st.session_state["set_local_or_remote"] = True
-            st.experimental_rerun()  # Rerun the script so the "Enter URL here" can be shown in the box
-        else:
-            if not st.session_state[
-                "show_first_chatbot_msg"
-            ]:  # show this msg in the bot only if it's not the first msg of the bot
-                st.session_state["generated"].append("Local OR Remote")
-
-    if st.session_state["set_local_or_remote"]:
-
-        # The bot should ask the user to give a url or ip based on their previous option
-        if st.session_state["show_url_msg_once"]:
-            if st.session_state["user_local_remote"] == "Local":
-                msg = "GIVE URL"
-            else:  # Remote
-                msg = "REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN"
-
-            st.session_state["save_url_msg"] = msg
-            st.session_state["show_url_msg_once"] = False
-            st.experimental_rerun()  # Rerun script to show the url msg in the bot
-
-        if not st.session_state["allow_url_to_be_checked"] and len(input_text) != 0:
-            if validators.url(input_text):
-                st.session_state["allow_url_to_be_checked"] = True
+            if input_text == "Local" or input_text == "Remote":
+                st.session_state[
+                    "user_local_remote"
+                ] = input_text  # save the user's input
+                st.session_state["set_local_or_remote"] = True
+                st.experimental_rerun()  # Rerun the script so the "Enter URL here" can be shown in the box
             else:
-                # Edit the url msg from "GIVE URL" TO "THE GIVEN URL IS INVALID"
-                # as we show one response from the bot and one from the user for each interaction
-                # and as we provide the "GIVE URL" to direct the user to give a url
-                # then won't be able to get a response by the bot based on the user's input
-                # thus, the needed change but it only need to be done once
-                if (
-                    st.session_state["showed_url_msg_once"]
-                    and not st.session_state["edited_url_msg"]
-                ):
-                    st.session_state["generated"][-1] = "THE GIVEN URL IS INVALID"
-                    st.session_state["edited_url_msg"] = True
-                else:
-                    st.session_state["generated"].append("THE GIVEN URL IS INVALID")
+                # show this msg in the bot only if it's not the first msg of the bot
+                if not st.session_state["show_first_chatbot_msg"]:
+                    if not st.session_state["edited_local_or_remote_msg_once"]:
+                        st.session_state["bot_msgs"][
+                            -1
+                        ] = "THE GIVEN INPUT IS INVALID.\nGIVE Local OR Remote"
+                        st.session_state["edited_local_or_remote_msg_once"] = True
+                    else:
+                        st.session_state["bot_msgs"].append(
+                            "THE GIVEN INPUT IS INVALID.\nGIVE Local OR Remote"
+                        )
 
-        if (
-            st.session_state["allow_url_to_be_checked"]
-            # and not st.session_state["url_checked"]
-        ):
+        else:  # Local or Remote has been set, now URL time
+
+            # The bot should ask the user to give a url or ip based on their previous option
+            if not st.session_state["show_url_msg_once"]:
+                if st.session_state["user_local_remote"] == "Local":
+                    msg = "GIVE URL"
+                else:  # Remote
+                    msg = "REMOTE SHOULD ONLY BE DONE ON IPs YOU OWN"
+
+                width = 20
+                padding = (width - len(msg)) // 8
+                centered_text = f"<div style='text-align: center;'>{' ' * padding}{msg}{' ' * padding}</div>"
+                decorative_lines = (
+                    f"<div style='text-align: center;'>{'💀' * width}</div>"
+                )
+
+                # Combine the decorative lines and centered text
+                msg = f"{decorative_lines * 2}<br>{centered_text}<br>{decorative_lines * 2}"
+
+                # Streamlit gets confused here, so I assign the msg to a session
+                # instead of doing len(st.session_state["bot_msgs"][-1])
+                # where I show it on the bottom of the script
+                st.session_state["save_url_msg"] = msg
+
+                st.session_state["show_url_msg_once"] = True
+                st.experimental_rerun()  # Rerun script to show the url msg in the bot
+
+            if not st.session_state["allow_url_to_be_checked"]:
+                if validators.url(input_text):
+                    st.session_state["allow_url_to_be_checked"] = True
+                else:
+                    # Edit the url msg from "GIVE URL" TO "THE GIVEN URL IS INVALID"
+                    # as we show one response from the bot and one from the user for each interaction
+                    # and as we provide the "GIVE URL" to direct the user to give a url
+                    # then won't be able to get a response by the bot based on the user's input
+                    # thus, the needed change but it only need to be done once
+                    if (
+                        st.session_state["showed_url_msg_once"]
+                        and not st.session_state["showed_url_msg_once_checked"]
+                    ):
+                        st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID!"
+                        st.session_state["showed_url_msg_once_checked"] = True
+                    else:
+                        st.session_state["bot_msgs"].append("THE GIVEN URL IS INVALID.")
+
+        if st.session_state["allow_url_to_be_checked"]:
             with st.spinner(f"Testing website {input_text}. This will take a while."):
                 if not st.session_state["process_started"]:
                     lgcheck = LoginChecker(input_text)
                     process = multiprocessing.Process(
                         target=lgcheck.run()
+
                     )
 
                     process.start()
@@ -170,65 +200,127 @@ if model == "Login Checker":
                     with st.expander("debug log"):
                         if os.path.exists(lgcheck.logging_file_path):
                             with open(lgcheck.logging_file_path, "r") as runtxt:
-                                formatted_readlines = pprint.pformat(runtxt.readlines())
+                                formatted_readlines = ''.join(runtxt.readlines())
                                 st.write(formatted_readlines)
-                    
+
                     st.session_state["process_started"] = False
 
                     if os.path.exists(lgcheck.summary_file_path):
-                        st.success("Login Checker process has completed.")
+                        login_checker_msg = "Login Checker process has completed."
+
+                        st.session_state["security_summary_success"].append(
+                            login_checker_msg
+                        )
+        
+                        st.session_state["security_summary_success"].append(
+                            lgcheck.autogpt_resp
+                        )
+
                         with open(lgcheck.summary_file_path, "r") as sectxt:
-                            st.success(''.join(sectxt.readlines()))
-                            st.success(lgcheck.autogpt_resp)
+                            summary = "".join(sectxt.readlines())
+                            st.session_state["security_summary_success"].append(summary)
+
                     else:
-                        st.error("Login Check failed. No report found.")
-                        st.error(lgcheck.autogpt_resp)
+                        login_checker_msg = "Login Check failed. No report found."
+                        st.session_state["security_summary_failure"].append(
+                            login_checker_msg
+                        )
+                        
+                        st.session_state["security_summary_failure"].append(
+                            lgcheck.autogpt_resp
+                        )
 
-                    # Set them back to default so the whole conversation can start all over again
-                    st.session_state["show_first_chatbot_msg"] = True
-                    st.session_state["generated"].append("Local OR Remote")
+                st.session_state["disable_input"] = True  # Disable input
+                st.experimental_rerun()
+    else:
+        if len(st.session_state["security_summary_failure"]) != 0:
+            st.error(st.session_state["security_summary_failure"])
+        else:
+            for item in st.session_state["security_summary_success"]:
+                st.success(item)
 
-                    st.session_state["set_local_or_remote"] = False
-
-                    st.session_state["show_url_msg_once"] = True
-                    st.session_state["allow_url_to_be_checked"] = False
-                    st.session_state["showed_url_msg_once"] = False
-                    st.session_state["edited_url_msg"] = False
-                else:
-                    st.experimental_rerun()
-
-                # st.session_state["url_checked"] = True
-
-
-# Show the "GIVE URL" msg in the chatbot
-if (
-    not st.session_state["show_url_msg_once"]
-    and not st.session_state["showed_url_msg_once"]
-):
-    st.session_state["generated"].append(st.session_state["save_url_msg"])
-    message(
-        st.session_state["save_url_msg"],
-        key=str(len(st.session_state["generated"]) - 1),
-    )
-    st.session_state["showed_url_msg_once"] = True
-
-# Show the first msg in the chatbot
-if st.session_state["show_first_chatbot_msg"]:
-    message(st.session_state["generated"], key=str(len(st.session_state["generated"]) - 1))
-    st.session_state["show_first_chatbot_msg"] = False
+        st.warning("SESSION EXPIRED.\nREFRESH THE PAGE.")
 
 
-# Show all the msgs in the bot from the start
-# if the two lists do not match in size, then won't be shown
-filtered_past = [
-    (i, msg) for i, msg in enumerate(st.session_state["past"]) if len(msg) != 0
-]
-filtered_generated = [
-    (i, msg) for i, msg in enumerate(st.session_state["generated"]) if len(msg) != 0
-]
+# Check that the security report is not created yet
+if not st.session_state["disable_input"]:
+    # Show the first msg in the chatbot
+    if st.session_state["show_first_chatbot_msg"]:
+        message(
+            st.session_state["bot_msgs"], key=str(len(st.session_state["bot_msgs"]) - 1)
+        )
+        st.session_state["show_first_chatbot_msg"] = False
 
-for (past_i, past_msg), (generated_i, generated_msg) in reversed(
-    list(zip(filtered_past, filtered_generated))
-):
-    message(past_msg, is_user=True, key=str(past_i) + "_user")
-    message(generated_msg, key=str(generated_i))
+    else:  # all other times
+
+        # Show the "GIVE URL" msg in the chatbot
+        if (
+            st.session_state["show_url_msg_once"]
+            and not st.session_state["showed_url_msg_once"]
+        ):
+            st.session_state["bot_msgs"].append(st.session_state["save_url_msg"])
+            # message(
+            #     st.session_state["save_url_msg"],
+            #     key=str(len(st.session_state["bot_msgs"])),
+            # )
+            st.markdown(st.session_state["save_url_msg"], unsafe_allow_html=True)
+
+            st.session_state["showed_url_msg_once"] = True
+
+        else:
+            # Show all msgs after the first msg is already shown
+            # Filter out any empty entry from the user
+            filtered_user_msgs1 = [
+                (i, msg)
+                for i, msg in enumerate(st.session_state["user_msgs"])
+                if len(msg) != 0
+            ]
+            filtered_bot_msgs1 = [
+                (i, msg)
+                for i, msg in enumerate(st.session_state["bot_msgs"])
+                if len(msg) != 0
+            ]
+
+            # If the two lists do not have the same
+            # Decrease the size of the longer list by one
+            # so they can match
+            filtered_user_msgs2 = filtered_user_msgs1
+            filtered_bot_msgs2 = filtered_bot_msgs1
+            if len(filtered_user_msgs1) > len(filtered_bot_msgs1):
+                filtered_user_msgs2 = filtered_user_msgs1[:-1]
+            elif len(filtered_user_msgs1) < len(filtered_bot_msgs1):
+                filtered_bot_msgs2 = filtered_bot_msgs1[:-1]
+
+            # Initialize the flag
+            executed_once = False
+
+            # Match the elements
+            for (user_i, user_msg), (bot_i, bot_msg) in reversed(
+                list(zip(filtered_user_msgs2, filtered_bot_msgs2))
+            ):
+                if not executed_once and (
+                    len(filtered_user_msgs2) != len(filtered_bot_msgs2)
+                ):
+                    # Show the last element that was filtered above
+                    if len(filtered_user_msgs2) > len(filtered_bot_msgs2):
+                        message(
+                            filtered_user_msgs2[user_i + 1][
+                                1
+                            ],  # Extract message text from the tuple
+                            is_user=True,
+                            key=str(user_i + 1) + "_user",
+                        )
+                    elif len(filtered_user_msgs2) < len(filtered_bot_msgs2):
+                        message(
+                            filtered_bot_msgs2[bot_i + 1][
+                                1
+                            ],  # Extract message text from the tuple
+                            key=str(bot_i + 1),
+                        )
+
+                    # For showing the extra element only once and first in the conversation
+                    executed_once = True
+
+                # Print the matched elements
+                message(user_msg, is_user=True, key=str(user_i) + "_user")
+                message(bot_msg, key=str(bot_i))
