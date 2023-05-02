@@ -23,9 +23,9 @@ class textformat:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
-def run_login_checker(http_url, logfile):
-    lgcheck = LoginChecker(http_url, logfile)
-    lgcheck.run()    
+log_dict = {
+    "lfp": None
+}
 
 def main():
     load_dotenv()
@@ -73,23 +73,15 @@ def main():
             else:
                 print(f"{http_url} is not a valid URL. Try again")
 
-        # run_login_checker(http_url)
-
-        log_file_path = f"{os.path.abspath('tools/logs/')}/runlog{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
-        if not os.path.exists(os.path.abspath("tools/logs/")):
-            os.makedirs(os.path.abspath("tools/logs/"))
-
-        if not os.path.exists(log_file_path):
-            open(log_file_path, 'w').close()
-
-        process = multiprocessing.Process(target=run_login_checker, args=(http_url,log_file_path,))
+        lgcheck = LoginChecker(http_url)
+        process = multiprocessing.Process(target=lgcheck.run())
         process.start()
         process.join()
 
         seek_pos = None
         while process.is_alive:
-            if os.path.exists(log_file_path):
-                with open(log_file_path, "r") as runtxt:
+            if os.path.exists(lgcheck.logging_file_path):
+                with open(lgcheck.logging_file_path, "r") as runtxt:
                     if seek_pos:
                         runtxt.seek(seek_pos)
 
@@ -107,6 +99,7 @@ def main():
                 break
         
         print("Tool completed run")
+        print(lgcheck.autogpt_resp)
         
 
         

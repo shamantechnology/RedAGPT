@@ -48,16 +48,6 @@ def add_bg_from_local(image_file):
     )
 
 
-def run_login_checker(http_url, queue):
-    lgcheck = LoginChecker(http_url)
-    lgcheck.run()
-
-    log_dict = queue.get()
-    log_dict["lfp"] = lgcheck.logging_file_path
-    log_dict["ssp"] = lgcheck.summary_file_path
-    queue.put(log_dict)
-
-
 # Add img to the bg
 bg_img_path = os.path.abspath("imgs/bg_img.jpg")
 add_bg_from_local(bg_img_path)
@@ -194,40 +184,39 @@ if model == "Login Checker":
 
         if st.session_state["allow_url_to_be_checked"]:
             with st.spinner(f"Testing website {input_text}. This will take a while."):
-
                 if not st.session_state["process_started"]:
-                    queue = multiprocessing.Queue()
-                    queue.put({})
+                    lgcheck = LoginChecker(input_text)
                     process = multiprocessing.Process(
-                        target=run_login_checker,
-                        args=(input_text, queue),
+                        target=lgcheck.run()
+
                     )
+
                     process.start()
                     process.join()
                     st.session_state["process_started"] = True
 
                 process.join()
                 if not process.is_alive():
-                    log_after_dict = queue.get()
-                    log_file_path = log_after_dict["lfp"]
-                    security_summary_path = log_after_dict["ssp"]
-
                     with st.expander("debug log"):
-                        if os.path.exists(log_file_path):
-                            with open(log_file_path, "r") as runtxt:
-                                formatted_readlines = pprint.pformat(runtxt.readlines())
+                        if os.path.exists(lgcheck.logging_file_path):
+                            with open(lgcheck.logging_file_path, "r") as runtxt:
+                                formatted_readlines = ''.join(runtxt.readlines())
                                 st.write(formatted_readlines)
 
                     st.session_state["process_started"] = False
 
-                    if os.path.exists(security_summary_path):
+                    if os.path.exists(lgcheck.summary_file_path):
                         login_checker_msg = "Login Checker process has completed."
 
                         st.session_state["security_summary_success"].append(
                             login_checker_msg
                         )
+        
+                        st.session_state["security_summary_success"].append(
+                            lgcheck.autogpt_resp
+                        )
 
-                        with open(security_summary_path, "r") as sectxt:
+                        with open(lgcheck.summary_file_path, "r") as sectxt:
                             summary = "".join(sectxt.readlines())
                             st.session_state["security_summary_success"].append(summary)
 
@@ -235,6 +224,10 @@ if model == "Login Checker":
                         login_checker_msg = "Login Check failed. No report found."
                         st.session_state["security_summary_failure"].append(
                             login_checker_msg
+                        )
+                        
+                        st.session_state["security_summary_failure"].append(
+                            lgcheck.autogpt_resp
                         )
 
                 st.session_state["disable_input"] = True  # Disable input
