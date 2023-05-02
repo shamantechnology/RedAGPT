@@ -216,7 +216,7 @@ if model == "Login Checker":
                         st.session_state["showed_url_msg_once"]
                         and not st.session_state["showed_url_msg_once_checked"]
                     ):
-                        st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID OR FORBIDDEN!"
+                        st.error("THE GIVEN URL IS INVALID OR FORBIDDEN!")
                         st.session_state["showed_url_msg_once_checked"] = True
                     else:
                         st.session_state["bot_msgs"].append("GOOD JOB. YOUR OPTION HAS BEEN SET.")
