@@ -42,7 +42,7 @@ class LoginChecker:
     def __init__(self, http_url):
         self.uuid = str(uuid.uuid4()).replace('-', '')
 
-        self.autogpt_resp = ":)"
+        self.autogpt_resp = ";_; failed"
 
         # prompt for the agent to use, will be a list
         data_path = os.path.abspath("tools/data/")
