@@ -12,7 +12,44 @@ from PIL import Image
 from streamlit_chat import message
 
 from tools.login_checker import LoginChecker
+import tldextract
+import whois
 
+def is_gov_or_corp_url(url):
+    # List of known government and corporate domains
+    GOV_DOMAINS = ["gov", "mil"]
+    CORP_DOMAINS = ["com", "org", "net"]
+
+    # Extract the top-level domain (TLD) of the URL
+    ext = tldextract.extract(url)
+    tld = ext.suffix
+
+    # Check if the TLD matches a known government or corporate domain
+    if tld in GOV_DOMAINS or tld in CORP_DOMAINS:
+        return True
+    else:
+        return False
+
+def is_gov_url(url):
+    # Extract the domain name from the URL
+    domain_name = url.split("//")[-1].split("/")[0]
+
+    # Look up domain registration information using whois
+    domain_info = whois.whois(domain_name)
+
+    # Check if the domain belongs to a government entity
+    if 'government' in domain_info.name.lower() or 'gov' in domain_info.name.lower():
+        return True
+    else:
+        return False
+    
+def is_gov_or_corp_website(url):
+    # Check if the URL belongs to a government or corporate website
+    if is_gov_or_corp_url(url) or is_gov_url(url):
+        return True
+    else:
+        return False
+    
 # Change the webpage name and icon
 web_icon_path = os.path.abspath("imgs/web_icon.png")
 web_icon = Image.open(web_icon_path)
@@ -165,7 +202,9 @@ if model == "Login Checker":
                 st.experimental_rerun()  # Rerun script to show the url msg in the bot
 
             if not st.session_state["allow_url_to_be_checked"]:
-                if validators.url(input_text):
+                # check for gov or corp
+
+                if validators.url(input_text) and not is_gov_or_corp_website(input_text):
                     st.session_state["allow_url_to_be_checked"] = True
                 else:
                     # Edit the url msg from "GIVE URL" TO "THE GIVEN URL IS INVALID"
@@ -177,7 +216,7 @@ if model == "Login Checker":
                         st.session_state["showed_url_msg_once"]
                         and not st.session_state["showed_url_msg_once_checked"]
                     ):
-                        st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID!"
+                        st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID OR FORBIDDEN!"
                         st.session_state["showed_url_msg_once_checked"] = True
                     else:
                         st.session_state["bot_msgs"].append("GOOD JOB. YOUR OPTION HAS BEEN SET.")
