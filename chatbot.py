@@ -180,7 +180,7 @@ if model == "Login Checker":
                         st.session_state["bot_msgs"][-1] = "THE GIVEN URL IS INVALID!"
                         st.session_state["showed_url_msg_once_checked"] = True
                     else:
-                        t.session_state["bot_msgs"].append("GOOD JOB. YOUR OPTION HAS BEEN SET.")
+                        st.session_state["bot_msgs"].append("GOOD JOB. YOUR OPTION HAS BEEN SET.")
 
         if st.session_state["allow_url_to_be_checked"]:
             with st.spinner(f"Testing website {input_text}. This will take a while."):
