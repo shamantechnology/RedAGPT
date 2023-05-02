@@ -282,7 +282,7 @@ if model == "Login Checker":
                                 st.write(formatted_readlines)
 
                 st.session_state["disable_input"] = True  # Disable input
-                st.experimental_rerun()
+                # st.experimental_rerun()
     else:
         if len(st.session_state["security_summary_failure"]) != 0:
             st.error(st.session_state["security_summary_failure"])
