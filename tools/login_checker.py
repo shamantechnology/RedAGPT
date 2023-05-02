@@ -121,7 +121,7 @@ class LoginChecker:
         self.goals = [
             # f"Stay on task with your goals and don't get into a loop. If you are looping, break the loop and re-exam your goals that you have left",
             # f"Check {self.http_url} if it is a government, corporate or social network website by searching the web. Use search2 if search is hitting a quota limit. If the URL contains .gov or .org then it is government or corporate. If it is, stop all tasks and finish with reply \"Not legal to run prompt check on {self.http_url}. Its a government or corporate website!!\"",
-            f"Do a search on cyber security laws and understand what is legal or not to hack and not get in trouble. Use search2 if search is hitting a quota limit.",
+            # f"Do a search on cyber security laws and understand what is legal or not to hack and not get in trouble. Use search2 if search is hitting a quota limit.",
             # f"Do a search on what {self.http_url} is about. Use search2 if search is hitting a quota limit. If there is no information about it then continue on to the next step. If it is found to get you in trouble, stop all tasks and finish with a reply to the user \"Not legal to run prompt check on {self.http_url}!!\".",
             # f"Check if {self.http_url} is a valid url to a login form and if not, stop all tasks and finish with a reply to user \"Not a valid form URL. Please provide a actual form URL\"",
             # f"Check if log files {self.info_log_path} and {self.error_log_path} exist and if not, create them",
