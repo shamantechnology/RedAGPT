@@ -197,38 +197,45 @@ if model == "Login Checker":
 
                 process.join()
                 if not process.is_alive():
-                    with st.expander("debug log"):
-                        if os.path.exists(lgcheck.logging_file_path):
-                            with open(lgcheck.logging_file_path, "r") as runtxt:
-                                formatted_readlines = ''.join(runtxt.readlines())
-                                st.write(formatted_readlines)
-
                     st.session_state["process_started"] = False
 
                     if os.path.exists(lgcheck.summary_file_path):
                         login_checker_msg = "Login Checker process has completed."
 
-                        st.session_state["security_summary_success"].append(
-                            login_checker_msg
-                        )
+                        st.success(login_checker_msg)
+
+                        # st.session_state["security_summary_success"].append(
+                        #     login_checker_msg
+                        # )
+
+                        st.success(lgcheck.autogpt_resp)
         
-                        st.session_state["security_summary_success"].append(
-                            lgcheck.autogpt_resp
-                        )
+                        # st.session_state["security_summary_success"].append(
+                        #     lgcheck.autogpt_resp
+                        # )
 
                         with open(lgcheck.summary_file_path, "r") as sectxt:
                             summary = "".join(sectxt.readlines())
-                            st.session_state["security_summary_success"].append(summary)
+                            st.success(summary)
+                            # st.session_state["security_summary_success"].append(summary)
 
                     else:
                         login_checker_msg = "Login Check failed. No report found."
-                        st.session_state["security_summary_failure"].append(
-                            login_checker_msg
-                        )
+                        st.error(login_checker_msg)
+                        # st.session_state["security_summary_failure"].append(
+                        #     login_checker_msg
+                        # )
                         
-                        st.session_state["security_summary_failure"].append(
-                            lgcheck.autogpt_resp
-                        )
+                        st.error(lgcheck.autogpt_resp)
+                        # st.session_state["security_summary_failure"].append(
+                        #     lgcheck.autogpt_resp
+                        # )
+                    
+                    with st.expander("debug log"):
+                        if os.path.exists(lgcheck.logging_file_path):
+                            with open(lgcheck.logging_file_path, "r") as runtxt:
+                                formatted_readlines = ''.join(runtxt.readlines())
+                                st.write(formatted_readlines)
 
                 st.session_state["disable_input"] = True  # Disable input
                 st.experimental_rerun()
