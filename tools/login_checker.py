@@ -23,6 +23,7 @@ from langchain.tools.file_management.write import WriteFileTool
 from langchain.tools.file_management.read import ReadFileTool
 from langchain.tools.python.tool import PythonREPLTool
 from langchain.utilities import GoogleSearchAPIWrapper
+from langchain.tools import DuckDuckGoSearchRun
 # from langchain.tools import ShellTool
 
 # from langchain.vectorstores import FAISS
@@ -87,7 +88,17 @@ class LoginChecker:
                 "useful for when you want to run a command in the bash terminal."
             ),
             WriteFileTool(),
-            ReadFileTool()
+            ReadFileTool(),
+            Tool(
+                "search2",
+                DuckDuckGoSearchRun().run,
+                """
+                Useful for when you need to answer questions about current events. 
+                You should ask targeted questions
+                Use this when search hits a quota limit
+                """
+
+            )
         ]
         
         self.embeddings = OpenAIEmbeddings()
