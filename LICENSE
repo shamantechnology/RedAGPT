@@ -1,15 +1,13 @@
-Copyright (C) Shaman Technology, LLC - All Rights Reserved.
+Copyright (c) 2021, Shaman Technology, LLC <vincentcastro@gmail.com>
 
-THE CONTENTS OF THIS PROJECT ARE PROPRIETARY AND CONFIDENTIAL.
-UNAUTHORIZED COPYING, TRANSFERRING OR REPRODUCTION OF THE CONTENTS OF THIS PROJECT, VIA ANY MEDIUM IS STRICTLY PROHIBITED.
+Permission to use, copy, modify, and/or distribute this software for any purpose
+with or without fee is hereby granted, provided that the above copyright notice
+and this permission notice appear in all copies.
 
-The receipt or possession of the source code and/or any parts thereof does not convey or imply any right to use them
-for any purpose other than the purpose for which they were provided to you.
-
-The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to
-the warranties of merchantability, fitness for a particular purpose and non infringement.
-In no event shall the authors or copyright holders be liable for any claim, damages or other liability,
-whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software
-or the use or other dealings in the software.
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+THIS SOFTWARE.
