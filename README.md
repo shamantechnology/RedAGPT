@@ -55,6 +55,7 @@ You should create a virtualenv with the required dependencies by running
 ```
 make virtualenv
 ```
+Remember to have python version 3.8. Others will work and then you have to change the version in Makefile
 
 Activate the virtualenv by running
 ```
