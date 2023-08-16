@@ -28,6 +28,7 @@ Overall, the tool kit is for security professionals looking for smarter security
 * Redis vectorstorage module via LangChain
 
 ## Tech Used
+* Python version 3.8
 * Redis Vector Storage 6.2.10
 * Ubuntu (WSL) 22.04 LTS
 * Kali Linux 6.1.0
@@ -52,6 +53,7 @@ At the end it will give us a security report of vulnerabilities found, if any, a
 
 ### Environment
 You should create a virtualenv with the required dependencies by running
+
 ```
 make virtualenv
 ```
