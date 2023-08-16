@@ -1,11 +1,16 @@
 """
+LoginChecker class
+
 Using langchains create a task to check the security
 of a login form found at a specific web address
 
 THIS IS DANGEROUS TO RUN
 
-Uses the hydra cli program
+hydra
 https://www.cyberpunk.rs/password-cracker-thc-hydra
+
+langchain
+https://github.com/langchain-ai/langchain
 """
 import os
 import uuid
