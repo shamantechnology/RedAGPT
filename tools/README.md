@@ -3,7 +3,8 @@
 Checks the login form specified by URL to form by user.
 
 ## 2. WiFi
-Analysis of wifi and known security vulernabilites 
+Analysis of wifi and known security vulernabilites
+Linux Only
 
 REQUIRED CLI TOOLS:
 * Hydra

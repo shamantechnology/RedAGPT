@@ -17,7 +17,7 @@ https://github.com/langchain-ai/langchain
 
 import uuid
 import os
-import datetime
+from datetime import datetime
 import logging
 import sys
 
@@ -108,7 +108,23 @@ class WIFI:
 
         # set goals
         self.goals = [
-
+            """
+                Check if the device you are running on has a wifi adapter by running the command lshw. 
+                    If there is no wifi adapter found, end program with message \"\"\"Wifi Adapter Needed\"\"\".
+            """,
+            """
+                Find the interface name of the wifi using the command ifconfig
+            """,
+            """
+                Run the command airodump-ng followed by the found interface name. For example \"airodump-ng wlan0\"
+            """,
+            """
+                Using the \"ENC\", \"CIPHE\", \"AUTH\", \"ESSID\" fields from the airodump-ng output, 
+                    find 5 common security issues that you think would be the most interesting to security analysts 
+            """
+            f"""
+                Create a document at {self.summary_file_path} with the security report of the found local wifi networks and what to do to improve security 
+            """
         ]
 
         # setup vectorstore and run agent
