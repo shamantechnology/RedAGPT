@@ -4,12 +4,11 @@ Using the menu select which test to run
 """
 from dotenv import load_dotenv
 import validators
-from tools.login_checker import LoginChecker
 import multiprocessing
-import time
-import os
-from datetime import datetime
-import pprint
+import sys
+
+from tools.login_checker import LoginChecker
+from tools.wifi import WIFI
 
 class textformat:
     PURPLE = '\033[95m'
@@ -30,7 +29,7 @@ log_dict = {
 def main():
     load_dotenv()
 
-    options_open = [1]
+    options_open = [1,2]
 
     print(
         f"{textformat.RED}%%-------------------------------------------%%{textformat.END}",
@@ -38,6 +37,7 @@ def main():
         f"\n{textformat.RED}%%-------------------------------------------%%{textformat.END}",
         "\nSelect which tool to run by number",
         "\n\n[1] Login Test",
+        "\n\n[2] WIFI",
         "\n"
     )
 
@@ -78,31 +78,42 @@ def main():
         process.start()
         process.join()
 
-        seek_pos = None
+        # check if process is still alive
         while process.is_alive:
-            if os.path.exists(lgcheck.logging_file_path):
-                with open(lgcheck.logging_file_path, "r") as runtxt:
-                    if seek_pos:
-                        runtxt.seek(seek_pos)
-
-                    log_lines = runtxt.readlines()
-                    if len(log_lines) > 0:
-                        log_line = ''.join(log_lines).replace('\n', '')
-                        pprint.pprint(f"log_line: {log_line}")
-                    
-                    seek_pos = runtxt.tell()
-                    print("sleep 10")
-                    time.sleep(10)
-
             process.join()
             if process.exitcode is not None:
                 break
         
-        print("Tool completed run")
-        print(lgcheck.autogpt_resp)
-        
+        print("Running \"Login Checker\" Tool...\n")
+        # set sysout back to console
+        sys.stdout = sys.__stdout__
 
+        print("Tool \"Login Checker\" completed run")
+        print(f"\n{textformat.YELLOW}[AI]{textformat.END} {lgcheck.autogpt_resp}")
+
+    # WIFI
+    elif number_choice == 2:
+        wifi_obj = WIFI()
+        process = multiprocessing.Process(target=wifi_obj.run())
+
+        ## bad code repeat need to make this a function
+        # it is for logging the stdout again
+        process.start()
+        process.join()
+
+        # check if process is still alive
+        while process.is_alive:
+            process.join()
+            if process.exitcode is not None:
+                break
         
+        print("Running \"WIFI\" Tool...\n")
+        # set sysout back to console
+        sys.stdout = sys.__stdout__
+
+        # end
+        print("Tool \"WIFI\" completed run")
+        print(f"\n{textformat.YELLOW}[AI]{textformat.END} {wifi_obj.autogpt_resp}")
 
 if __name__ == "__main__":
     main()
