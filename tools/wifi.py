@@ -109,8 +109,10 @@ class WIFI:
         # set goals
         self.goals = [
             """
-                Check if the device you are running on has a wifi adapter by running the command lshw. 
-                    If there is no wifi adapter found, end program with message \"\"\"Wifi Adapter Needed\"\"\".
+                Check if the device you are running on has a wifi adapter by running the command 
+                    \"\"\"sudo lshw | grep -e wireless -e Wireless\"\"\"
+                Reading the output from the command. 
+                If there is no output from the command, there is no wifi, end program with message \"Wifi Adapter Needed\".
             """,
             """
                 Find the interface name of the wifi using the command ifconfig
@@ -152,7 +154,7 @@ class WIFI:
             raise err
 
     def run(self):
-        llm = ChatOpenAI(temperature=0, streaming=True)
+        llm = ChatOpenAI(temperature=0.5, streaming=True)
 
         agent = AutoGPT.from_llm_and_tools(
             ai_name=self.uuid,
