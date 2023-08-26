@@ -42,6 +42,11 @@ class WIFI:
         # unique name of the agent used for redis vector store
         self.uuid = str(uuid.uuid4()).replace('-', '')
 
+        # setup data path
+        self.data_path = os.path.abspath("tools/data/")
+        if not os.path.exists(self.data_path):
+            os.makedirs(self.data_path)
+
         # logging and security report setup
         logs_path = os.path.abspath("tools/logs/")
         self.logging_file_name = f"wifi_runlog{datetime.now().strftime('%Y%m%d_%H%M')}_{self.uuid}.txt"
@@ -108,21 +113,30 @@ class WIFI:
 
         # set goals
         self.goals = [
-            """
+             """
                 Check if the device you are running on has a wifi adapter by running the command 
                     \"\"\"sudo lshw | grep -e wireless -e Wireless\"\"\"
                 Reading the output from the command. 
                 If there is no output from the command, there is no wifi, end program with message \"Wifi Adapter Needed\".
             """,
             """
-                Find the interface name of the wifi using the command ifconfig
+                Set the device wifi to monitor mode by running the command
+                    \"\"\"sudo airmon-ng check kill && sudo airmon-ng start wlan0\"\"\"
+                If there is an error, end program with message \"Setting up wifi monitoring failed. Please check wifi interface\"
             """,
             """
-                Run the command airodump-ng followed by the found interface name. For example \"airodump-ng wlan0\"
+                Check if the device you are running on has a wifi adapter set to monitor mode with the command 
+                    \"\"\"sudo airmon-ng | grep wlan0mon\"\"\"
+                Reading the output from the command. 
+                If there is no output from the command, there is no wifi monitoring, end program with message \"Wifi Adapter Set to Monitoring Mode Needed\".
             """,
-            """
-                Using the \"ENC\", \"CIPHE\", \"AUTH\", \"ESSID\" fields from the airodump-ng output, 
-                    find 5 common security issues that you think would be the most interesting to security analysts 
+            f"""
+                Run the command
+                \"\"\"sudo timeout 30 airodump-ng --manufacturer --uptime --wps --cswitch 1 -w {self.data_path}ragpt.csv --output-format csv wlan0mon\"\"\"
+            """,
+            f"""
+                Read the CSV file \"{self.data_path}ragpt.csv\" and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
+                    find 5 common security issues that would be the most interesting to security analysts 
             """
             f"""
                 Create a document at {self.summary_file_path} with the security report of the found local wifi networks and what to do to improve security 
