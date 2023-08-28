@@ -160,8 +160,7 @@ class WIFI:
             self.vectorstore = Redis(
                 redis_url=os.environ["REDIS_URL"],
                 embedding=self.embeddings,
-                index_name=self.uuid,
-                embedding_function=self.embeddings.embed_query
+                index_name=self.uuid
             )
 
         except Exception as err:
