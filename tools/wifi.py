@@ -34,7 +34,7 @@ from langchain.utilities import GoogleSearchAPIWrapper
 from langchain.tools import DuckDuckGoSearchRun
 from langchain.vectorstores.redis import Redis
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.experimental import AutoGPT
+from langchain_experimental.autonomous_agents import AutoGPT
 from langchain.chat_models import ChatOpenAI
 
 class WIFI:

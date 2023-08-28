@@ -1,4 +1,5 @@
-langchain==0.0.273
+langchain==0.0.275
+langchain_experimental==0.0.11
 openai==0.27.5
 python-dotenv==1.0.0
 redis==4.5.4
