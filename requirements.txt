@@ -8,3 +8,4 @@ validators==0.20.0
 whois==0.9.27
 google-api-python-client==2.86.0
 duckduckgo-search==3.8.5
+tiktoken==0.3.3
