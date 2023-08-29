@@ -113,10 +113,10 @@ class WIFI:
 
         # set goals
         self.goals = [
-             """
+            f"""
              STEP 1
-                Check if the device you are running on has a wifi adapter by running the command 
-                    \"\"\"sudo lshw | grep -e wireless -e Wireless\"\"\"
+                Check if the device you are running on has a wifi adapter on interface \"{os.environ["USE_WIFI_INTERFACE"]}\" by running the command 
+                    \"\"\"sudo ifconfig | grep {os.environ["USE_WIFI_INTERFACE"]}\"\"\"
                 Reading the output from the command. 
                 If there is no output from the command, there is no wifi, end program with message \"Wifi Adapter Needed\".
             """,
@@ -141,15 +141,23 @@ class WIFI:
             """
             STEP 5
                 Wait 30 seconds while the command from STEP 4 finishes
-            """
+            """,
             f"""
             STEP 6
                 Read the CSV file {self.data_path + "/ragpt-01.csv"} and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
                     find 5 common security issues that would be the most useful and actionable to an IT cybersecurity team  
-            """
+            """,
             f"""
             STEP 7
                 Create a document at {self.summary_file_path} with the security report of the found local wifi networks and what to do to improve security 
+            """,
+            f"""
+            STEP 8
+                Delete file {self.data_path + "/ragpt-01.csv"} if present. 
+            """,
+            f"""
+            STEP 9
+                End program run with message "WIFI Security Report Completed"
             """
         ]
 
