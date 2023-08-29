@@ -121,7 +121,7 @@ class WIFI:
             """,
             """
                 Set the device wifi to monitor mode by running the command
-                    \"\"\"sudo airmon-ng check kill && sudo airmon-ng start wlan0\"\"\"
+                    \"\"\"sudo airmon-ng start wlan0\"\"\"
                 If there is an error, end program with message \"Setting up wifi monitoring failed. Please check wifi interface\"
             """,
             """
