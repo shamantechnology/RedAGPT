@@ -148,6 +148,7 @@ class WIFI:
                     find 5 common security issues that would be the most useful and actionable to an IT cybersecurity team  
             """
             f"""
+            STEP 7
                 Create a document at {self.summary_file_path} with the security report of the found local wifi networks and what to do to improve security 
             """
         ]
