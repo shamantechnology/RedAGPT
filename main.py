@@ -33,7 +33,7 @@ def main():
 
     print(
         f"{textformat.RED}%%-------------------------------------------%%{textformat.END}",
-        f"\n{textformat.RED}%%-------%% RED AutoGPT Tool v0.1 %%---------%%{textformat.END}",
+        f"\n{textformat.RED}%%-------%% RED AutoGPT Tool v0.4 %%---------%%{textformat.END}",
         f"\n{textformat.RED}%%-------------------------------------------%%{textformat.END}",
         "\nSelect which tool to run by number",
         "\n\n[1] Login Test",
