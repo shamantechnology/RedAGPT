@@ -119,20 +119,20 @@ class WIFI:
                 Reading the output from the command. 
                 If there is no output from the command, there is no wifi, end program with message \"Wifi Adapter Needed\".
             """,
-            """
+            f"""
                 Set the device wifi to monitor mode by running the command
-                    \"\"\"sudo airmon-ng start wlan0\"\"\"
+                    \"\"\"sudo airmon-ng start {os.environ["USE_WIFI_INTERFACE"]}\"\"\"
                 If there is an error, end program with message \"Setting up wifi monitoring failed. Please check wifi interface\"
             """,
-            """
+            f"""
                 Check if the device you are running on has a wifi adapter set to monitor mode with the command 
-                    \"\"\"sudo airmon-ng | grep wlan0mon\"\"\"
+                    \"\"\"sudo airmon-ng | grep {os.environ["USE_WIFI_INTERFACE"]}mon\"\"\"
                 Reading the output from the command. 
                 If there is no output from the command, there is no wifi monitoring, end program with message \"Wifi Adapter Set to Monitoring Mode Needed\".
             """,
             f"""
                 Run the command
-                \"\"\"sudo timeout 30 airodump-ng --manufacturer --uptime --wps --cswitch 1 -w {self.data_path}ragpt.csv --output-format csv wlan0mon\"\"\"
+                \"\"\"sudo timeout 30 airodump-ng --manufacturer --uptime --wps --cswitch 1 -w {self.data_path}ragpt.csv --output-format csv {os.environ["USE_WIFI_INTERFACE"]}mon\"\"\"
             """,
             f"""
                 Read the CSV file \"{self.data_path}ragpt.csv\" and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
