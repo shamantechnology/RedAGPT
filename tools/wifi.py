@@ -132,7 +132,7 @@ class WIFI:
             """,
             f"""
                 Run the command
-                \"\"\"sudo timeout 30 airodump-ng --manufacturer --uptime --wps --cswitch 1 -w {self.data_path}ragpt.csv --output-format csv {os.environ["USE_WIFI_INTERFACE"]}mon\"\"\"
+                \"\"\"sudo timeout 30 airodump-ng --manufacturer --uptime --wps --cswitch 1 -w {self.data_path + "ragpt.csv"} --output-format csv {os.environ["USE_WIFI_INTERFACE"]}mon\"\"\"
             """,
             f"""
                 Read the CSV file \"{self.data_path}ragpt.csv\" and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
