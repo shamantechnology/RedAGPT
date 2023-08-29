@@ -144,7 +144,7 @@ class WIFI:
             """
             f"""
             STEP 6
-                Read the CSV file {self.data_path + "/ragpt"} and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
+                Read the CSV file {self.data_path + "/ragpt-01.csv"} and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
                     find 5 common security issues that would be the most useful and actionable to an IT cybersecurity team  
             """
             f"""
