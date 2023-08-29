@@ -114,29 +114,38 @@ class WIFI:
         # set goals
         self.goals = [
              """
+             STEP 1
                 Check if the device you are running on has a wifi adapter by running the command 
                     \"\"\"sudo lshw | grep -e wireless -e Wireless\"\"\"
                 Reading the output from the command. 
                 If there is no output from the command, there is no wifi, end program with message \"Wifi Adapter Needed\".
             """,
             f"""
+            STEP 2
                 Set the device wifi to monitor mode by running the command
                     \"\"\"sudo airmon-ng start {os.environ["USE_WIFI_INTERFACE"]}\"\"\"
                 If there is an error, end program with message \"Setting up wifi monitoring failed. Please check wifi interface\"
             """,
             f"""
+            STEP 3
                 Check if the device you are running on has a wifi adapter set to monitor mode with the command 
                     \"\"\"sudo airmon-ng | grep {os.environ["USE_WIFI_INTERFACE"]}mon\"\"\"
                 Reading the output from the command. 
                 If there is no output from the command, there is no wifi monitoring, end program with message \"Wifi Adapter Set to Monitoring Mode Needed\".
             """,
             f"""
+            STEP 4
                 Run the command
-                \"\"\"sudo timeout 30 airodump-ng --manufacturer --uptime --wps --cswitch 1 -w {self.data_path + "ragpt.csv"} --output-format csv {os.environ["USE_WIFI_INTERFACE"]}mon\"\"\"
+                \"\"\"sudo timeout 30 airodump-ng -K 1 --manufacturer --uptime --wps --cswitch 1 -w {self.data_path + "/ragpt"} --output-format csv {os.environ["USE_WIFI_INTERFACE"]}mon &\"\"\"
             """,
+            """
+            STEP 5
+                Wait 30 seconds while the command from STEP 4 finishes
+            """
             f"""
-                Read the CSV file \"{self.data_path}ragpt.csv\" and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
-                    find 5 common security issues that would be the most interesting to security analysts 
+            STEP 6
+                Read the CSV file {self.data_path + "/ragpt"} and using the \"ENC\", \"CIPHER\", \"AUTH\", \"ESSID\", \"UPTIME\" and \"MANUFACTURER\" fields, 
+                    find 5 common security issues that would be the most useful and actionable to an IT cybersecurity team  
             """
             f"""
                 Create a document at {self.summary_file_path} with the security report of the found local wifi networks and what to do to improve security 
